@@ -126,6 +126,16 @@ summary{cursor:pointer;font-weight:600;min-height:32px}
 .refs{padding-left:22px;font-size:14px}.refs li{margin:6px 0}
 .refs a,.note a{color:var(--wind);overflow-wrap:anywhere}
 @media(max-width:640px){.ptab td:nth-child(2){white-space:normal}}
+#gGar .gico{background:var(--drag);color:#fff}
+.garrows{display:grid;gap:14px}
+.garhd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.garhd b{font-size:15px}
+.gardelta{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.garseg{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column}
+.garseg button{font-size:14px;min-height:40px;padding:0 6px}
+.garsrc{margin:6px 0 0;font-size:13px;color:var(--muted);line-height:1.4}
+.garsrc a{color:var(--wind)}
+.tag{display:inline-block;padding:1px 7px;border-radius:9px;background:var(--panel);font-weight:700;font-size:12px;color:var(--ink);margin-right:4px}
 .fig.empty{min-height:0;margin:0}
 .pmsg{font-size:14px;color:var(--muted);margin:6px 0 0;min-height:1.4em}
 svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
@@ -203,6 +213,13 @@ svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:st
 </select></div>
 <div class="row"><label for="g"><span data-i="lG">Eğim</span> <output id="oG"></output></label><input type="range" id="g" min="-8" max="12" step="0.5" value="0"></div>
 </div>
+<button type="button" class="gbtn" id="gGar" aria-expanded="false" aria-controls="pGar"><span class="gico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14a9 9 0 0 1 18 0v1H3z"/><path d="M12 5v4M7.5 7l2 3M16.5 7l-2 3"/><path d="M3 15h18l-2 4H5z"/></svg></span><span class="gtx"><b data-i="gGar">Aero garaj</b><span id="sumGar"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<div class="gpanel" id="pGar" role="region" data-ia="aGar" aria-label="Aero garaj" hidden>
+<div class="ghead"><b data-i="gGar">Aero garaj</b><button type="button" class="gclose" data-i="close" data-close="pGar">Kapat</button></div>
+<p class="small" data-i="garLead"></p>
+<div id="garRows" class="garrows"></div>
+<button type="button" id="garReset" class="ghost" data-i="garReset">Sıfırla</button>
+</div>
 <button type="button" class="gbtn" id="gEnv" aria-expanded="false" aria-controls="pEnv"><span class="gico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg></span><span class="gtx"><b data-i="gEnv">Sürücü, hava ve lastik</b><span id="sumEnv"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
 <div class="gpanel" id="pEnv" role="region" data-ia="aEnv" aria-label="Sürücü, hava ve lastik ayarları" hidden>
 <div class="ghead"><b data-i="gEnv">Sürücü, hava ve lastik</b><button type="button" class="gclose" data-i="close" data-close="pEnv">Kapat</button></div>
@@ -260,6 +277,7 @@ svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:st
 <li>Yan rüzgar yalnızca yaw açısı ve CdA çarpanı üzerinden etki eder; [1]'de CdA 0–15° arasında anlamlı değişmemiştir. Güçlü yan rüzgarda ve düşük hızda (β &gt; 15°) belirsizlik artar.</li>
 <li>Draft (rüzgar arkası) hesaba katılmaz. Grup içinde direnç çok daha düşüktür; pelotonun ortasında tek sürücünün %5–10'una kadar inebilir [5].</li>
 <li>Rakımın vücudun ürettiği güce etkisi (oksijen azlığı) modellenmez; yalnızca hava yoğunluğu değişir. Bu iki etkinin dengesi için bkz. [4].</li>
+<li>Aero garaj değerleri hakemli makalelerden değil, rüzgar tüneli testlerinden gelir (bağımsız yayın testleri ve üretici verileri); her satırda kaynağı ve türü belirtilmiştir.</li>
 <li>Rüzgar sabit ve yer seviyesinde kabul edilir; arazi, ağaç ve bina korumasıyla gerçek rüzgar daha düşük olabilir.</li>
 </ul>
 <h3>Kaynaklar</h3>
@@ -292,6 +310,7 @@ svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:st
 <li>Crosswind acts only through the yaw angle and the CdA multiplier; in [1] CdA did not change significantly between 0 and 15°. Uncertainty grows in strong crosswinds at low speed (β &gt; 15°).</li>
 <li>Drafting is not included. Drag inside a group is much lower, down to 5–10% of a solo rider in the middle of a peloton [5].</li>
 <li>The effect of altitude on the power your body can produce (less oxygen) is not modelled; only air density changes. See [4] for how the two effects balance.</li>
+<li>Aero garage values come from wind-tunnel tests (independent publication tests and brand data), not peer-reviewed papers; each row names its source and type.</li>
 <li>Wind is assumed constant at rider height; terrain, trees and buildings can shelter you from much of the forecast wind.</li>
 </ul>
 <h3>References</h3>
@@ -341,7 +360,16 @@ dS:['Ön','Sağ','Arka','Sol'],dL:['Önden','Sağdan','Arkadan','Soldan'],pre:['
 dn:['karşıdan','sağ çapraz önden','sağdan','sağ çapraz arkadan','arkadan','sol çapraz arkadan','soldan','sol çapraz önden'],
 bf:['sakin','esinti','hafif rüzgar','tatlı rüzgar','mutedil rüzgar','sert rüzgar','kuvvetli rüzgar','fırtınamsı','fırtına','kuvvetli fırtına','tam fırtına','şiddetli fırtına','kasırga'],
 share:'Paylaş',shT:'Ayarları paylaş',shP:'Bağlantıyı açan kişi aynı ayarlarla başlar.',copy:'Kopyala',copied:'Bağlantı kopyalandı.',copyFail:'Otomatik kopyalanamadı; bağlantı seçildi, elle kopyalayabilirsin.',shId:'Ayar kodu',loaded:'Paylaşılan ayarlar yüklendi.',badCode:'Bağlantıdaki ayar kodu geçersiz, varsayılan ayarlar açıldı.',
-bBear:'Rulman sürtünmesi',
+bBear:'Rulman sürtünmesi',gGar:'Aero garaj',aGar:'Aero garaj ayarları',garLead:'Ekipman ve bakım seçimlerinin etkisi. Değerler rüzgar tüneli testlerinden; hakemli değil, kaynak her satırda.',garReset:'Sıfırla',garNone:'Standart kurulum',garChg:'değişiklik',min:'dk',sec:'sn',
+tag_ind:'Bağımsız test',tag_lab:'Üretici tüneli',tag_claim:'Üretici iddiası',
+gk_bike:'Bisiklet',gk_wheel:'Jantlar',gk_helm:'Kask',gk_cloth:'Giysi',gk_sock:'Çorap',gk_legs:'Bacaklar',gk_arms:'Kollar',gk_beard:'Sakal',
+go_bike:['Klasik / endurans','Modern yarış','TT / velodrom'],go_wheel:['Sığ','Derin (50 mm+)'],go_helm:['Normal','Aero'],go_cloth:['Bol forma','Yarış forması','Tulum'],go_sock:['Normal','Aero'],go_legs:['Kıllı','Tıraşlı'],go_arms:['Kıllı','Tıraşlı'],go_beard:['Yok','Var'],
+gn_bike:'2015 klasik bir bisiklet, ortalama süper bisikletten 40 km/sa\'te 23 W yavaş (jant farkı ayrı satırda). TT bisikleti: aero bar pozisyonuyla, 50 km/sa\'te 21 W.',
+gn_wheel:'Klasik bisiklete derin jant: 250 W\'ta 40 km\'de ~25 sn.',gn_helm:'Specialized: iyi bir aero kask 45 km/sa\'te 7–10 W.',
+gn_cloth:'Tulum: 40 km/sa\'te tipik 3–8 W. Bol forma: Pearl Izumi\'ye göre aero formaya karşı 48 km/sa\'te ~20 W.',
+gn_sock:'Çoğu test 2–4 W; bağımsız testte birçok aero çorap normalinden ayırt edilemedi.',gn_legs:'Specialized tünelinde CdA 0,271 → 0,259; 40 km\'de 40–90 sn.',
+gn_arms:'Specialized: 40 km\'de ~19 sn.',gn_beard:'Specialized: 40 km\'de ~1 sn. Rahat ol.',
+
 posn:{'0.42':'dik','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}},
 en:{title:'Road bike wind resistance',doc:'Bike wind resistance',lead:'Drag the blue knob around the ring to set where the wind comes from, then set its strength and your speed. Required watts, drag and yaw angle update instantly.',
 view:'View',v2d:'Top-down (2D)',v3d:'3D scene',cvA:'Top-down view: rider on the road, airflow and wind direction ring',tip:'Drag',t3hint:'Drag to rotate · pinch or scroll to zoom',lg3:'Flow lines are illustrative, not a flow simulation.',lgTrue:'True wind (where it comes from)',lgApp:'Wind felt by the rider',
@@ -364,7 +392,16 @@ dS:['Front','Right','Rear','Left'],dL:['Head','Right','Tail','Left'],pre:['Headw
 dn:['headwind','front-right','from the right','rear-right','tailwind','rear-left','from the left','front-left'],
 bf:['calm','light air','light breeze','gentle breeze','moderate breeze','fresh breeze','strong breeze','near gale','gale','strong gale','storm','violent storm','hurricane'],
 share:'Share',shT:'Share these settings',shP:'Anyone who opens this link starts with the same settings.',copy:'Copy',copied:'Link copied.',copyFail:'Could not copy automatically; the link is selected so you can copy it yourself.',shId:'Settings code',loaded:'Shared settings loaded.',badCode:'The settings code in the link is invalid, so defaults were loaded.',
-bBear:'Bearing friction',
+bBear:'Bearing friction',gGar:'Aero garage',aGar:'Aero garage settings',garLead:'How kit and grooming choices change things. Values come from wind-tunnel tests, not peer-reviewed; each row names its source.',garReset:'Reset',garNone:'Standard setup',garChg:'changes',min:'min',sec:'s',
+tag_ind:'Independent test',tag_lab:'Brand wind tunnel',tag_claim:'Brand claim',
+gk_bike:'Bike',gk_wheel:'Wheels',gk_helm:'Helmet',gk_cloth:'Clothing',gk_sock:'Socks',gk_legs:'Legs',gk_arms:'Arms',gk_beard:'Beard',
+go_bike:['Classic / endurance','Modern race','TT / track'],go_wheel:['Shallow','Deep (50 mm+)'],go_helm:['Standard','Aero'],go_cloth:['Loose jersey','Race-fit kit','Skinsuit'],go_sock:['Standard','Aero'],go_legs:['Hairy','Shaved'],go_arms:['Hairy','Shaved'],go_beard:['None','Yes'],
+gn_bike:'A 2015 classic bike was 23 W slower at 40 km/h than the average superbike (wheels are a separate row). TT bike: with aero-bar position, 21 W at 50 km/h.',
+gn_wheel:'Deep wheels on a classic bike: ~25 s over 40 km at 250 W.',gn_helm:'Specialized: a good aero helmet saves 7–10 W at 45 km/h.',
+gn_cloth:'Skinsuit: typically 3–8 W at 40 km/h. Loose jersey: ~20 W vs an aero jersey at 48 km/h per Pearl Izumi.',
+gn_sock:'Most tests show 2–4 W; in an independent test many aero socks were indistinguishable from normal ones.',gn_legs:'Specialized tunnel: CdA 0.271 → 0.259; 40–90 s over 40 km.',
+gn_arms:'Specialized: ~19 s over 40 km.',gn_beard:'Specialized: ~1 s over 40 km. Relax.',
+
 posn:{'0.42':'upright','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}}};
 let LANG=(()=>{try{const s=localStorage.getItem('rz-lang');if(I18N[s])return s;}catch(e){}return /^tr/i.test(navigator.language||'tr')?'tr':'en';})();
 const t=(k,v)=>{let s=I18N[LANG][k]??I18N.tr[k]??k;if(v&&typeof s==='string')for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;};
@@ -374,21 +411,33 @@ const fmt=(x,n=0)=>x.toLocaleString(LANG==='tr'?'tr-TR':'en-GB',{minimumFraction
 const kmh=x=>x>=129.9?'130+':fmt(x,1);
 const rho=()=>101325*Math.pow(1-2.25577e-5*S.alt,5.25588)/(287.05*(S.t+273.15));
 const FW=0.0044,EC=0.976,YK=[[0,1],[5,0.265/0.269],[10,0.265/0.269],[15,0.255/0.269]];
+const GAR=[
+ {k:'bike',d:1,v:[0.0203,0,-0.0128],tag:'ind',src:[['Cyclingnews','https://www.cyclingnews.com/features/wind-tunnel-tested-how-much-difference-do-aero-wheels-make'],['Cycling Weekly','https://www.cyclingweekly.com/fitness/bike-fit/watch-much-faster-time-trial-bike-really-434360']]},
+ {k:'wheel',d:0,v:[0,-0.0071],tag:'ind',src:[['Cyclingnews','https://www.cyclingnews.com/features/wind-tunnel-tested-how-much-difference-do-aero-wheels-make']]},
+ {k:'helm',d:0,v:[0,-0.0071],tag:'lab',src:[['BikeRadar','https://www.bikeradar.com/features/how-to-ruin-an-aero-road-helmet-dont-do-this/']]},
+ {k:'cloth',d:1,v:[0.0135,0,-0.0071],tag:'claim',src:[['Competitive Cyclist','https://www.competitivecyclist.com/bulletin/skinsuit-vs-jersey-bibs'],['BikeRadar','https://www.bikeradar.com/features/tunnel-testing-clothing-pearl-izumis-ongoing-aero-design/']]},
+ {k:'sock',d:0,v:[0,-0.0036],tag:'ind',src:[['Cyclingnews','https://www.cyclingnews.com/cycling-kit-accessories/clothing-shoes/most-aero-socks-are-a-waste-of-money-heres-the-wind-tunnel-verified-proof/']]},
+ {k:'legs',d:0,v:[0,-0.012],tag:'lab',src:[['BikeRadar','https://www.bikeradar.com/road/gear/article/shave-your-legs-save-precious-seconds-44601/']]},
+ {k:'arms',d:0,v:[0,-0.0047],tag:'lab',src:[['road.cc','https://road.cc/?p=82850']]},
+ {k:'beard',d:0,v:[0,0.00025],tag:'lab',src:[['BikeRadar','https://www.bikeradar.com/news/specialized-test-aerodynamics-of-a-beard-video']]}];
+const garSel={};GAR.forEach(g=>{garSel[g.k]=g.d;});
+const garDelta=(sel)=>GAR.reduce((s,g)=>s+g.v[(sel||garSel)[g.k]],0);
+const cdaEff=(sel)=>S.cda+garDelta(sel);
 const yawK=b=>{if(b>=15)return YK[3][1];for(let i=1;i<YK.length;i++)if(b<=YK[i][0]){const[a0,k0]=YK[i-1],[a1,k1]=YK[i];return k0+(k1-k0)*(b-a0)/(a1-a0);}return 1;};
-function calc(vk,dir,wk){
+function calc(vk,dir,wk,sel){
   const v=vk/3.6,w=(wk??S.w)/3.6,th=dir*Math.PI/180,r=rho();
   const ax=v+w*Math.cos(th),ay=w*Math.sin(th),Va=Math.hypot(ax,ay);
-  const beta=Math.atan2(Math.abs(ay),Math.abs(ax))*180/Math.PI,k=yawK(beta),A=S.cda*k+FW;
+  const beta=Math.atan2(Math.abs(ay),Math.abs(ax))*180/Math.PI,k=yawK(beta),cde=cdaEff(sel),A=cde*k+FW;
   const Fa=0.5*r*A*ax*Math.abs(ax),a=Math.atan(S.g/100);
   const Fr=S.crr*S.m*9.81*Math.cos(a),Fg=S.m*9.81*Math.sin(a),Pb=v*(91+8.7*v)*1e-3;
   const wheel=(Fa+Fr+Fg)*v+Pb,total=wheel>0?wheel/EC:wheel;
-  return{v,ax,ay,Va,Fa,k,A,Pa:Fa*v,Pr:Fr*v,Pg:Fg*v,Pb,loss:total-wheel,total,yaw:Math.atan2(ay,ax)*180/Math.PI};
+  return{v,ax,ay,Va,Fa,k,A,cde,Pa:Fa*v,Pr:Fr*v,Pg:Fg*v,Pb,loss:total-wheel,total,yaw:Math.atan2(ay,ax)*180/Math.PI};
 }
-function speedFor(P,dir,wk){
+function speedFor(P,dir,wk,sel){
   let lo=0.5,hi=130;
-  if(calc(hi,dir,wk).total<P)return hi;
-  if(calc(lo,dir,wk).total>P)return lo;
-  for(let i=0;i<50;i++){const mid=(lo+hi)/2;if(calc(mid,dir,wk).total<P)lo=mid;else hi=mid;}
+  if(calc(hi,dir,wk,sel).total<P)return hi;
+  if(calc(lo,dir,wk,sel).total>P)return lo;
+  for(let i=0;i<50;i++){const mid=(lo+hi)/2;if(calc(mid,dir,wk,sel).total<P)lo=mid;else hi=mid;}
   return (lo+hi)/2;
 }
 const beaufort=ms=>{const i=[0.3,1.6,3.4,5.5,8,10.8,13.9,17.2,20.8,24.5,28.5,32.7].findIndex(x=>ms<x);return i<0?12:i;};
@@ -429,6 +478,7 @@ function update(){
   }
   dl.textContent=txt;dl.className='delta '+cls;
   if(typeof sums==='function')sums();
+  if(typeof garUpdate==='function')garUpdate();
   if(typeof scheduleHash==='function')scheduleHash();
   $('sVa').textContent=fmt(cur.Va*3.6,1)+KMH();
   $('sYaw').textContent=cur.ax<0?t('behind'):fmt(Math.abs(cur.yaw),1)+'°';
@@ -446,7 +496,7 @@ function drawBars(){
   const mx=Math.max(1,...rows.map(r=>Math.abs(r[1])));
   $('bars').innerHTML=rows.map(r=>`<div class="bar"><span>${r[0]}</span><span><i style="width:${Math.abs(r[1])/mx*100}%;background:${r[1]<0?'var(--help)':r[2]}"></i></span><span class="v">${r[1]<0?'−':''}${fmt(Math.abs(Math.round(r[1])))} W</span></div>`).join('');
   const front=`<b>${fmt(Math.abs(c.ax)*3.6,1)}${KMH()}</b> `+(c.ax>=0?t('fr'):t('bk'));
-  let s=`<b>${t('sumH')}</b><br>${t('sumApp',{v:fmt(c.v*3.6,1),sg:c.ax-c.v>=0?'+':'−',c:fmt(Math.abs(c.ax-c.v)*3.6,1),front,y:fmt(Math.abs(c.ay)*3.6,1)})}<br><code>F = ½ · ρ · (CdA · k(β) + F<sub>w</sub>) · V<sub>${t('subAx')}</sub>² = ½ · ${fmt(rho(),3)} · (${fmt(S.cda,2)} · ${fmt(c.k,3)} + 0,0044) · ${fmt(c.ax,2)}² = ${fmt(c.Fa,1)} N</code><br>${t('aeroP')} = ${fmt(c.Fa,1)} × ${fmt(c.v,2)} m/s = <b>${fmt(Math.round(c.Pa))} W</b>`;
+  let s=`<b>${t('sumH')}</b><br>${t('sumApp',{v:fmt(c.v*3.6,1),sg:c.ax-c.v>=0?'+':'−',c:fmt(Math.abs(c.ax-c.v)*3.6,1),front,y:fmt(Math.abs(c.ay)*3.6,1)})}<br><code>F = ½ · ρ · (CdA · k(β) + F<sub>w</sub>) · V<sub>${t('subAx')}</sub>² = ½ · ${fmt(rho(),3)} · (${fmt(c.cde,3)} · ${fmt(c.k,3)} + 0,0044) · ${fmt(c.ax,2)}² = ${fmt(c.Fa,1)} N</code><br>${t('aeroP')} = ${fmt(c.Fa,1)} × ${fmt(c.v,2)} m/s = <b>${fmt(Math.round(c.Pa))} W</b>`;
   if(c.total<=0)s+='<br>'+t('sumBrake');
   $('sum').innerHTML=s;
 }
@@ -674,7 +724,7 @@ $('pt2').addEventListener('click',()=>setPlot(false));$('pt3').addEventListener(
 
 
 // ---------- toggle groups ----------
-const GR=[['gWind','pWind'],['gRide','pRide'],['gEnv','pEnv']];
+const GR=[['gWind','pWind'],['gRide','pRide'],['gGar','pGar'],['gEnv','pEnv']];
 function openG(pid){GR.forEach(([b,pn])=>{const on=pn===pid&&$(pn).hidden;$(pn).hidden=!on;$(b).setAttribute('aria-expanded',on);});}
 GR.forEach(([b,pn])=>$(b).addEventListener('click',()=>openG(pn)));
 document.querySelectorAll('.gclose[data-close]').forEach(x=>x.addEventListener('click',()=>{const pn=x.dataset.close;$(pn).hidden=true;const g=GR.find(r=>r[1]===pn)[0];$(g).setAttribute('aria-expanded','false');$(g).focus();}));
@@ -686,6 +736,32 @@ function sums(){
 }
 
 
+// ---------- aero garage ----------
+function garRender(){
+  $('garRows').innerHTML=GAR.map(g=>`<div class="garrow"><div class="garhd"><b>${t('gk_'+g.k)}</b><span class="gardelta" id="gd_${g.k}"></span></div>
+<div class="seg garseg" role="group" aria-label="${t('gk_'+g.k)}">${t('go_'+g.k).map((o,i)=>`<button type="button" data-g="${g.k}" data-o="${i}" aria-pressed="${garSel[g.k]===i}">${o}</button>`).join('')}</div>
+<p class="garsrc"><span class="tag">${t('tag_'+g.tag)}</span>${t('gn_'+g.k)} ${g.src.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join(' · ')}</p></div>`).join('');
+}
+$('garRows').addEventListener('click',e=>{const b=e.target.closest('button[data-g]');if(!b)return;garSel[b.dataset.g]=+b.dataset.o;
+  b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));update();});
+$('garReset').addEventListener('click',()=>{GAR.forEach(g=>{garSel[g.k]=g.d;});garRender();update();});
+const fmtDur=s=>{const a=Math.abs(Math.round(s)),m=Math.floor(a/60),r=a%60;return (m?m+' '+t('min')+' ':'')+r+' '+t('sec');};
+function garUpdate(){
+  const sm=S.mode==='speed',base={};GAR.forEach(g=>{base[g.k]=g.d;});
+  const val=sel=>sm?calc(S.v,S.d,undefined,sel).total:speedFor(S.P,S.d,undefined,sel);
+  const cur0=val(garSel);
+  GAR.forEach(g=>{const alt=Object.assign({},garSel,{[g.k]:g.d});const d=cur0-val(alt),el=$('gd_'+g.k);if(!el)return;
+    if(garSel[g.k]===g.d){el.textContent='';return;}
+    const good=sm?d<0:d>0;el.style.color=Math.abs(d)<(sm?0.5:0.05)?'var(--muted)':good?'var(--help)':'var(--drag)';
+    el.textContent=sm?(Math.abs(d)<0.5?'≈0 W':(d>0?'+':'−')+fmt(Math.abs(d),0)+' W'):(Math.abs(d)<0.05?'≈0':(d>0?'+':'−')+fmt(Math.abs(d),1))+KMH();});
+  const changed=GAR.filter(g=>garSel[g.k]!==g.d).length,b0=val(base),d=cur0-b0;
+  let s;
+  if(!changed)s=t('garNone');
+  else if(sm)s=`${d>0?'+':'−'}${fmt(Math.abs(d),0)} W · ${changed} ${t('garChg')}`;
+  else{const dt=40000/(cur0/3.6)-40000/(b0/3.6);s=`${d>0?'+':'−'}${fmt(Math.abs(d),1)}${KMH()} · 40 km: ${dt<=0?'−':'+'}${fmtDur(dt)}`;}
+  $('sumGar').textContent=s;
+}
+
 function applyLang(l){
   if(l){LANG=l;try{localStorage.setItem('rz-lang',l);}catch(e){}}
   document.documentElement.lang=LANG;document.title=t('doc');
@@ -693,13 +769,13 @@ function applyLang(l){
   document.querySelectorAll('[data-ia]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.ia)));
   document.querySelectorAll('.meth').forEach(m=>{m.hidden=m.lang!==LANG;});
   $('lgTR').setAttribute('aria-pressed',LANG==='tr');$('lgEN').setAttribute('aria-pressed',LANG==='en');
-  chips();update();
+  chips();garRender();update();
 }
 $('lgTR').addEventListener('click',()=>applyLang('tr'));$('lgEN').addEventListener('click',()=>applyLang('en'));
 
 
 // ---------- shareable settings code ----------
-const B62='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',CDA=['0.42','0.36','0.32','0.29','0.23'],CRR=['0.0035','0.0045','0.006','0.008'],CODELEN=12;
+const B62='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',CDA=['0.42','0.36','0.32','0.29','0.23'],CRR=['0.0035','0.0045','0.006','0.008'],CODELEN=13;
 const ART='https://claude.ai/artifact/RmEHDZtrc8U7BUvEpm3bto';
 let want3d=0,wantSurf=0,hashT=0;
 const FIELDS=[
@@ -716,16 +792,19 @@ const FIELDS=[
  [4,()=>CRR.indexOf(String(S.crr)),i=>{S.crr=+CRR[i];}],
  [2,()=>is3d?1:0,i=>{want3d=i;}],
  [2,()=>surfOn?1:0,i=>{wantSurf=i;}]];
+const FIELDS_V1=FIELDS.slice();
+GAR.forEach(g=>FIELDS.push([g.v.length,()=>garSel[g.k],i=>{garSel[g.k]=i;}]));
 function encode(){
   let n=0n;for(const[c,g]of FIELDS){const v=Math.min(c-1,Math.max(0,g()|0));n=n*BigInt(c)+BigInt(v);}
   n=n*61n+(n*7n+13n)%61n;let s='';while(n>0n){s=B62[Number(n%62n)]+s;n/=62n;}
   return s.padStart(CODELEN,'0');
 }
 function decode(s){
-  if(!/^[0-9a-zA-Z]{12}$/.test(s))return null;
+  if(!/^[0-9a-zA-Z]{12,13}$/.test(s))return null;
+  const FL=s.length===12?FIELDS_V1:FIELDS;
   let n=0n;for(const ch of s)n=n*62n+BigInt(B62.indexOf(ch));
   const ck=n%61n;n/=61n;if((n*7n+13n)%61n!==ck)return null;
-  const idx=[];for(let k=FIELDS.length-1;k>=0;k--){const c=BigInt(FIELDS[k][0]);idx.unshift(Number(n%c));n/=c;}
+  const idx=[];for(let k=FL.length-1;k>=0;k--){const c=BigInt(FL[k][0]);idx.unshift(Number(n%c));n/=c;}
   return n===0n?idx:null;
 }
 function syncControls(){
@@ -739,8 +818,9 @@ function fromHash(initial){
   const code=location.hash.slice(1);if(!code)return false;
   const idx=decode(code);
   if(!idx){if(initial)toast(t('badCode'));return false;}
+  if(idx.length===FIELDS_V1.length)GAR.forEach(g=>{garSel[g.k]=g.d;});
   idx.forEach((v,k)=>FIELDS[k][2](v));
-  syncControls();setMode(S.mode);
+  garRender();syncControls();setMode(S.mode);
   if(!!want3d!==is3d)setView(!!want3d);
   if(!!wantSurf!==surfOn)setPlot(!!wantSurf);
   touched=true;tip.classList.add('gone');knob.classList.remove('pulse');
