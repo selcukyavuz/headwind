@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bisiklet rüzgar direnci</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap">
+<style>
+/* VOICE everyday tool for a serious road cyclist
+   IDEA a cycling head unit crossed with a wind sock: you ride, the air comes at you
+   PICTURE top-down road and rider with live airflow streaks, a draggable wind knob on a compass ring
+   COLOUR white / night ink, asphalt grey road, wind blue, drag red, tailwind green
+   TYPE Figtree 800 + Figtree
+   LAYOUT laptop/720: picture left, readout + controls right; below: polar chart + breakdown. phone: title, picture, slim sticky result, controls */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0f1214);--ink:light-dark(#14171a,#eef1f3);--muted:light-dark(#555d65,#9aa3ab);--line:light-dark(#dde2e6,#2a3036);--panel:light-dark(#f2f4f6,#171b1f);--road:light-dark(#3b4046,#262b31);--lane:light-dark(#f4f4f4,#c9ced3);--wind:light-dark(#0a5cff,#5c97ff);--drag:light-dark(#c81e17,#ff6a60);--help:light-dark(#007a45,#38d58d);--grass:light-dark(#e8ecef,#14181c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Figtree,system-ui,sans-serif;overflow-x:clip}
+.band{padding-block:clamp(20px,3vw,40px);padding-inline:max(4vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-weight:800;font-size:clamp(30px,4.2vw,46px);line-height:1.05;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+h2{font-weight:800;font-size:22px;line-height:1.15;letter-spacing:-.01em;margin:0 0 4px}
+.lead{color:var(--muted);margin:0;max-width:68ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(16px,3vw,36px);margin-top:20px;align-items:start}
+#stage{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--grass);touch-action:pan-y pinch-zoom;cursor:crosshair;user-select:none;-webkit-user-select:none}
+#stage>canvas{position:absolute;inset:0;width:100%;height:100%}
+#knob{position:absolute;left:0;top:0;width:44px;height:44px;border-radius:50%;background:var(--wind);border:3px solid var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.3);touch-action:none;cursor:grab;display:grid;place-items:center;color:var(--bg);font-weight:800;font-size:18px}
+#knob:active{cursor:grabbing}
+#knob svg{width:22px;height:22px}
+#tip{position:absolute;left:0;top:0;padding:4px 10px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .3s}
+#tip.gone{opacity:0}
+@media(prefers-reduced-motion:no-preference){#knob.pulse{animation:pulse 1.6s ease-in-out 4}}
+@keyframes pulse{50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--wind) 30%,transparent)}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:8px 2px 0}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.readout{background:var(--panel);border-radius:18px;padding:16px 20px}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big b{font-weight:800;font-size:clamp(54px,8vw,84px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.big span{font-size:20px;font-weight:600;color:var(--muted)}
+.delta{margin:6px 0 0;font-weight:600}
+.up{color:var(--drag)}.down{color:var(--help)}.neutral{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5em,1fr));gap:12px 16px;margin-top:12px;padding:12px 4px 0;border-top:1px solid var(--line)}
+.stats div{font-size:13px;color:var(--muted)}
+.stats b{display:block;font-size:20px;color:var(--ink);font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctl{margin-top:18px;display:grid;gap:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border-radius:12px;padding:4px}
+.seg button{font:600 15px Figtree,system-ui,sans-serif;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.row label{display:flex;justify-content:space-between;gap:10px;font-weight:600;font-size:15px}
+.row output{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted);font-weight:600}
+input[type=range]{width:100%;height:44px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--line)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ink);margin-top:-9px;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--ink)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--ink);border:3px solid var(--bg)}
+input[type=range].w::-webkit-slider-thumb{background:var(--wind);box-shadow:0 0 0 1px var(--wind)}
+input[type=range].w::-moz-range-thumb{background:var(--wind)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,#knob:focus-visible{outline:3px solid var(--wind);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:600 14px Figtree,system-ui,sans-serif;min-height:40px;padding:0 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chips button:hover{border-color:var(--ink)}
+.chips button[aria-pressed=true]{background:var(--wind);border-color:var(--wind);color:var(--bg)}
+select{font:16px Figtree,system-ui,sans-serif;min-height:44px;width:100%;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600;min-height:32px}
+.lower{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(16px,3vw,36px)}
+.fig{position:relative;min-height:420px;margin-top:10px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.vseg{margin-bottom:10px}
+#three{position:absolute;inset:0;cursor:grab}
+#three canvas{display:block;width:100%!important;height:100%!important}
+.ovl{position:absolute;inset:auto 0 12px;margin:auto;width:max-content;max-width:90%;padding:6px 12px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;pointer-events:none;text-align:center}
+#surf{position:relative;height:460px;margin-top:10px}
+.ptabs{margin-top:12px;max-width:420px}
+@media(max-width:640px){#surf{height:360px}}
+.groups{margin-top:16px;display:grid;gap:10px}
+.gbtn{display:grid;grid-template-columns:40px minmax(0,1fr) 24px;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:16px Figtree,system-ui,sans-serif;text-align:left;cursor:pointer}
+.gbtn:hover{border-color:var(--ink)}
+.gbtn[aria-expanded=true]{border-color:var(--ink);background:var(--panel)}
+.gico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--panel);color:var(--ink)}
+#gWind .gico{background:var(--wind);color:var(--bg)}
+.gico svg{width:22px;height:22px}
+.gtx b{display:block;font-weight:800;font-size:16px;line-height:1.2}
+.gtx span{display:block;color:var(--muted);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{width:22px;height:22px;transition:transform .2s}
+.gbtn[aria-expanded=true] .chev{transform:rotate(180deg)}
+.gpanel{display:grid;gap:14px;padding:6px 4px 10px}
+.gpanel[hidden]{display:none}
+.ghead{display:none}
+.gclose{font:600 15px Figtree,system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:22px;border:0;background:var(--ink);color:var(--bg);cursor:pointer}
+@media(max-width:640px){
+.gpanel{position:fixed;left:0;right:0;bottom:0;z-index:20;max-height:62vh;overflow-y:auto;background:var(--bg);border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);padding:0 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.ghead{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg);padding:12px 0 8px;z-index:1;font-size:18px}
+.ghead::before{content:"";position:absolute;top:6px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:var(--line)}
+}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.lang{flex:none;width:112px}
+.lang button{min-height:40px}
+.hact{display:flex;gap:8px;align-items:center;flex:none}
+.sharebtn{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border-radius:12px;border:0;background:var(--wind);color:var(--bg);font:700 15px Figtree,system-ui,sans-serif;cursor:pointer}
+.sharebtn svg{width:20px;height:20px}
+.dlg{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.4)}
+.dlg[hidden]{display:none}
+.dlgbox{width:100%;max-width:500px;background:var(--bg);color:var(--ink);border-radius:18px;padding:22px;display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.shrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+#shUrl{font:15px Figtree,system-ui,sans-serif;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.shid{margin:0;color:var(--muted);font-size:14px}.shid b{color:var(--ink);font-size:16px;letter-spacing:.03em}
+.shmsg{margin:0;min-height:1.3em;font-size:14px;font-weight:600;color:var(--help)}
+.ghost{justify-self:end;font:600 15px Figtree,system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media(max-width:640px){.hdr{flex-wrap:wrap}.sharebtn span{display:none}.sharebtn{padding:0 12px}}
+.fig.empty{min-height:0;margin:0}
+.pmsg{font-size:14px;color:var(--muted);margin:6px 0 0;min-height:1.4em}
+svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.bars{display:grid;gap:10px;margin-top:14px}
+.bar{display:grid;grid-template-columns:8.5em minmax(0,1fr) 4.5em;gap:10px;align-items:center;font-size:15px}
+.bar i{display:block;height:14px;border-radius:7px}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.sum{margin-top:18px;background:var(--panel);border-radius:14px;padding:14px 16px;font-size:15px}
+.sum code{font-size:14px;overflow-wrap:anywhere}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+@media(max-width:640px){
+.main,.lower{grid-template-columns:minmax(0,1fr)}
+#stage{width:min(100%,58vh);margin-inline:auto}
+.readout{position:sticky;top:0;z-index:3;padding:8px 14px;border-radius:0 0 14px 14px;margin-inline:-16px;box-shadow:0 4px 10px rgba(0,0,0,.08)}
+.big b{font-size:40px}.big span{font-size:15px}
+.delta{font-size:14px;margin-top:2px;line-height:1.3}
+.stats b{font-size:17px}
+.fig{min-height:340px}
+.bar{grid-template-columns:7.5em minmax(0,1fr) 4em;font-size:14px}
+.ctl{scroll-margin-top:110px}
+}
+</style>
+</head>
+<body>
+<section class="band"><div class="wrap">
+<div class="hdr"><h1 data-i="title">Yol bisikleti rüzgar direnci</h1><div class="hact"><button type="button" id="shareBtn" class="sharebtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg><span data-i="share">Paylaş</span></button><div class="seg lang" role="group" aria-label="Dil / Language"><button id="lgTR" lang="tr" aria-pressed="true">TR</button><button id="lgEN" lang="en" aria-pressed="false">EN</button></div></div></div>
+<p class="lead" data-i="lead">Mavi düğmeyi halka üzerinde sürükleyerek rüzgarın geldiği yönü seç, şiddetini ve kendi hızını ayarla. Gereken watt, sürtünme ve yaw açısı anında hesaplanır.</p>
+<div class="main">
+<div>
+<div class="seg vseg" role="group" data-ia="view" aria-label="Görünüm"><button id="v2d" aria-pressed="true" data-i="v2d">Üstten (2D)</button><button id="v3d" aria-pressed="false" data-i="v3d">3D sahne</button></div>
+<div id="stage">
+<div id="three" hidden></div><p class="ovl" id="t3msg" hidden></p>
+<canvas id="cv" role="img" data-ia="cvA" aria-label="Üstten görünüm: yolda bisikletçi, rüzgar akışı ve rüzgar yönü halkası"></canvas>
+<div id="knob" class="pulse" role="slider" tabindex="0" aria-label="Rüzgar yönü (gidişe göre)" aria-valuemin="0" aria-valuemax="359"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
+<div id="tip" data-i="tip">Sürükle</div>
+<p class="ovl" id="t3hint" hidden data-i="t3hint">Sürükleyerek çevir · sıkıştırarak yakınlaştır</p>
+</div>
+<div class="legend"><span id="lg3" hidden data-i="lg3">Akış çizgileri temsilîdir, akış simülasyonu değildir.</span><span><i style="background:var(--wind)"></i><span data-i="lgTrue">Gerçek rüzgar (geldiği yön)</span></span><span><i style="background:var(--drag)"></i><span data-i="lgApp">Sürücünün hissettiği rüzgar</span></span></div>
+</div>
+<div>
+<div class="readout">
+<div class="big"><b id="bigV">0</b><span id="bigU">W</span></div>
+<p class="delta" id="delta"></p>
+</div>
+<div class="stats">
+<div><span data-i="stVa">Hissedilen rüzgar</span><b id="sVa"></b></div>
+<div><span data-i="stYaw">Yaw (sapma) açısı</span><b id="sYaw"></b></div>
+<div><span id="sFl">Aero sürtünme</span><b id="sF"></b></div>
+<div>Beaufort<b id="sBf"></b></div>
+</div>
+<p class="sr" id="live" aria-live="polite"></p>
+<div class="groups">
+<button type="button" class="gbtn" id="gWind" aria-expanded="false" aria-controls="pWind"><span class="gico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h15a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg></span><span class="gtx"><b data-i="gWind">Rüzgar</b><span id="sumWind"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<div class="gpanel" id="pWind" role="region" data-ia="aWind" aria-label="Rüzgar ayarları" hidden>
+<div class="ghead"><b data-i="gWind">Rüzgar</b><button type="button" class="gclose" data-i="close" data-close="pWind">Kapat</button></div>
+<div class="row"><label for="w"><span data-i="lW">Rüzgar şiddeti</span> <output id="oW"></output></label><input type="range" class="w" id="w" min="0" max="70" step="1" value="20"></div>
+<div class="row"><label for="d"><span data-i="lD">Rüzgar yönü (gidişe göre)</span> <output id="oD"></output></label><input type="range" class="w" id="d" min="0" max="359" step="1" value="0"></div>
+<div class="chips" id="chips" role="group" data-ia="chipsA" aria-label="Hazır rüzgar yönleri"></div>
+</div>
+<button type="button" class="gbtn" id="gRide" aria-expanded="false" aria-controls="pRide"><span class="gico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 9h6l3.5 7M9 9l3 7h-3M14 6h2l-1 3"/></svg></span><span class="gtx"><b data-i="gRide">Sürüş</b><span id="sumRide"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<div class="gpanel" id="pRide" role="region" data-ia="aRide" aria-label="Sürüş ayarları" hidden>
+<div class="ghead"><b data-i="gRide">Sürüş</b><button type="button" class="gclose" data-i="close" data-close="pRide">Kapat</button></div>
+<div class="seg" role="group" data-ia="modeA" aria-label="Hesap modu">
+<button id="mSpeed" aria-pressed="true" data-i="mSpeed">Sabit hız → watt</button>
+<button id="mPower" aria-pressed="false" data-i="mPower">Sabit güç → hız</button>
+</div>
+<div class="row" id="rowV"><label for="v"><span data-i="lV">Senin hızın</span> <output id="oV"></output></label><input type="range" id="v" min="10" max="60" step="0.5" value="32"></div>
+<div class="row" id="rowP" hidden><label for="p"><span data-i="lP">Pedal gücü</span> <output id="oP"></output></label><input type="range" id="p" min="50" max="500" step="5" value="200"></div>
+<div class="row"><label for="pos" data-i="lPos">Pozisyon</label><select id="pos">
+<option value="0.42" data-i="o42">Dik, gidon üstü (CdA 0,42)</option>
+<option value="0.36" selected data-i="o36">Fren kolu üstü – hoods (0,36)</option>
+<option value="0.32" data-i="o32">Alt gidon – drops (0,32)</option>
+<option value="0.29" data-i="o29">Aero hoods, önkollar yatay (0,29)</option>
+<option value="0.23" data-i="o23">TT / triatlon aero bar (0,23)</option>
+</select></div>
+<div class="row"><label for="g"><span data-i="lG">Eğim</span> <output id="oG"></output></label><input type="range" id="g" min="-8" max="12" step="0.5" value="0"></div>
+</div>
+<button type="button" class="gbtn" id="gEnv" aria-expanded="false" aria-controls="pEnv"><span class="gico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg></span><span class="gtx"><b data-i="gEnv">Sürücü, hava ve lastik</b><span id="sumEnv"></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+<div class="gpanel" id="pEnv" role="region" data-ia="aEnv" aria-label="Sürücü, hava ve lastik ayarları" hidden>
+<div class="ghead"><b data-i="gEnv">Sürücü, hava ve lastik</b><button type="button" class="gclose" data-i="close" data-close="pEnv">Kapat</button></div>
+<div class="row"><label for="m"><span data-i="lM">Sürücü + bisiklet</span> <output id="oM"></output></label><input type="range" id="m" min="50" max="130" step="1" value="85"></div>
+<div class="row"><label for="t"><span data-i="lT">Sıcaklık</span> <output id="oT"></output></label><input type="range" id="t" min="-5" max="40" step="1" value="15"></div>
+<div class="row"><label for="alt"><span data-i="lAlt">Rakım</span> <output id="oA"></output></label><input type="range" id="alt" min="0" max="2500" step="50" value="0"></div>
+<div class="row"><label for="crr" data-i="lCrr">Lastik / yol</label><select id="crr">
+<option value="0.0035" data-i="c35">Yarış lastiği, pürüzsüz asfalt (Crr 0,0035)</option>
+<option value="0.0045" selected data-i="c45">İyi lastik, normal asfalt (Crr 0,0045)</option>
+<option value="0.006" data-i="c60">Antrenman lastiği, bozuk asfalt (Crr 0,006)</option>
+<option value="0.008" data-i="c80">Parke / kaba yüzey (Crr 0,008)</option>
+</select></div>
+</div>
+</div>
+</div>
+</div>
+</div></section>
+
+<section class="band" style="border-top:1px solid var(--line)"><div class="wrap lower">
+<div>
+<h2 id="polarTitle">Rüzgar hangi yönden gelirse kaç watt?</h2>
+<p class="lead" id="polarLead"></p>
+<div class="seg ptabs" role="group" data-ia="ptA" aria-label="Grafik türü"><button id="pt2" aria-pressed="true" data-i="pt2">Yöne göre</button><button id="pt3" aria-pressed="false" data-i="pt3">Yön × şiddet (3D)</button></div>
+<div class="fig" id="polarBox"><svg id="polar" role="img" data-ia="polarA" aria-label="Rüzgar yönüne göre kutupsal grafik"></svg></div>
+<div id="surf" hidden></div>
+<p class="pmsg" id="pmsg"></p>
+</div>
+<div>
+<h2 data-i="h2b">Watt nereye gidiyor</h2>
+<p class="lead" data-i="leadB">Şu anki ayarlarla gücün dağılımı. Yeşil çubuklar seni iten kuvvetlerdir.</p>
+<div class="bars" id="bars"></div>
+<div class="sum" id="sum"></div>
+<p class="note" data-i="note">Varsayımlar: aktarma verimi %97, CdA yaw açısıyla sabit kabul edildi (derin jantlarda yan rüzgarda biraz düşebilir), yan rüzgarın devirme etkisi hesaba katılmadı. Hava yoğunluğu sıcaklık ve rakımdan hesaplanır. CdA değerleri tipik amatör sürücü ortalamalarıdır.</p>
+</div>
+</div></section>
+
+<div id="shareDlg" class="dlg" hidden><div class="dlgbox" role="dialog" aria-modal="true" aria-labelledby="shT">
+<h2 id="shT" data-i="shT">Ayarları paylaş</h2>
+<p class="lead" data-i="shP">Bağlantıyı açan kişi aynı ayarlarla başlar.</p>
+<div class="shrow"><input id="shUrl" readonly aria-labelledby="shT"><button type="button" id="shCopy" class="gclose" data-i="copy">Kopyala</button></div>
+<p class="shid"><span data-i="shId">Ayar kodu</span>: <b id="shCode"></b></p>
+<p class="shmsg" id="shMsg" aria-live="polite"></p>
+<button type="button" id="shClose" class="ghost" data-i="close">Kapat</button>
+</div></div>
+<div id="toast" role="status" hidden></div>
+<script>
+{
+const $=id=>document.getElementById(id);
+const S={mode:'speed',v:32,P:200,w:20,d:0,cda:0.36,g:0,m:85,t:15,alt:0,crr:0.0045};
+const I18N={
+tr:{title:'Yol bisikleti rüzgar direnci',doc:'Bisiklet rüzgar direnci',lead:'Mavi düğmeyi halka üzerinde sürükleyerek rüzgarın geldiği yönü seç, şiddetini ve kendi hızını ayarla. Gereken watt, sürtünme ve yaw açısı anında hesaplanır.',
+view:'Görünüm',v2d:'Üstten (2D)',v3d:'3D sahne',cvA:'Üstten görünüm: yolda bisikletçi, rüzgar akışı ve rüzgar yönü halkası',tip:'Sürükle',t3hint:'Sürükleyerek çevir · sıkıştırarak yakınlaştır',lg3:'Akış çizgileri temsilîdir, akış simülasyonu değildir.',lgTrue:'Gerçek rüzgar (geldiği yön)',lgApp:'Sürücünün hissettiği rüzgar',
+stVa:'Hissedilen rüzgar',stYaw:'Yaw (sapma) açısı',gWind:'Rüzgar',gRide:'Sürüş',gEnv:'Sürücü, hava ve lastik',aWind:'Rüzgar ayarları',aRide:'Sürüş ayarları',aEnv:'Sürücü, hava ve lastik ayarları',close:'Kapat',
+lW:'Rüzgar şiddeti',lD:'Rüzgar yönü (gidişe göre)',chipsA:'Hazır rüzgar yönleri',modeA:'Hesap modu',mSpeed:'Sabit hız → watt',mPower:'Sabit güç → hız',lV:'Senin hızın',lP:'Pedal gücü',lPos:'Pozisyon',lG:'Eğim',lM:'Sürücü + bisiklet',lT:'Sıcaklık',lAlt:'Rakım',lCrr:'Lastik / yol',
+o42:'Dik, gidon üstü (CdA 0,42)',o36:'Fren kolu üstü – hoods (0,36)',o32:'Alt gidon – drops (0,32)',o29:'Aero hoods, önkollar yatay (0,29)',o23:'TT / triatlon aero bar (0,23)',
+c35:'Yarış lastiği, pürüzsüz asfalt (Crr 0,0035)',c45:'İyi lastik, normal asfalt (Crr 0,0045)',c60:'Antrenman lastiği, bozuk asfalt (Crr 0,006)',c80:'Parke / kaba yüzey (Crr 0,008)',
+ptA:'Grafik türü',pt2:'Yöne göre',pt3:'Yön × şiddet (3D)',polarA:'Rüzgar yönüne göre kutupsal grafik',h2b:'Watt nereye gidiyor',leadB:'Şu anki ayarlarla gücün dağılımı. Yeşil çubuklar seni iten kuvvetlerdir.',
+note:'Varsayımlar: aktarma verimi %97, CdA yaw açısıyla sabit kabul edildi (derin jantlarda yan rüzgarda biraz düşebilir), yan rüzgarın devirme etkisi hesaba katılmadı. Hava yoğunluğu sıcaklık ve rakımdan hesaplanır. CdA değerleri tipik amatör sürücü ortalamalarıdır.',
+kmh:'km/sa',deg:'derece',noPedal:'W · pedal gerekmez',brake:"{v} km/sa'yı korumak için fren gerekir. Serbest hız ≈ {f} km/sa",needed:'W gerekli',calm:'Rüzgarsız hava',
+dWup:'Rüzgarsız: {b} W · rüzgar +{d} W ekliyor',dWdn:'Rüzgarsız: {b} W · rüzgar −{d} W kazandırıyor',dSup:'Rüzgarsız: {b} km/sa · rüzgar +{d} km/sa kazandırıyor',dSdn:'Rüzgarsız: {b} km/sa · rüzgar −{d} km/sa kaybettiriyor',balance:' · Bu hızda dengede kalmak zor',
+behind:'arkadan',push:'Rüzgar itişi',aeroDrag:'Aero sürtünme',bAero:'Aerodinamik',bRoll:'Yuvarlanma',bDesc:'İniş (yerçekimi)',bClimb:'Tırmanma',bLoss:'Aktarma kaybı',
+sumH:'Hesap',sumApp:'Hissedilen rüzgar: hız {v} {sg} rüzgarın eksen bileşeni {c} = {front}, {y} km/sa yandan.',fr:'önden',bk:'arkadan',subApp:'hissedilen',subAx:'önden',aeroP:'Aero güç = F × hız',sumBrake:'Toplam kuvvet seni ileri itiyor: bu hızı korumak için pedal değil fren gerekir.',
+pTw:'Rüzgar hangi yönden gelirse kaç watt?',pTs:'Rüzgar hangi yönden gelirse ne kadar hızlı?',pLw:'{v} km/sa tutmak için gereken güç, {w} km/sa rüzgarın her yönü için. Kesikli çember rüzgarsız hali gösterir.',pLs:'{p} W ile ulaşacağın hız, {w} km/sa rüzgarın her yönü için. Kesikli çember rüzgarsız hali gösterir.',
+sLw:'{v} km/sa için gereken güç, rüzgarın her yönü ve şiddeti için. Kırmızı nokta şu anki durum. Çevirip yakınlaştırabilirsin.',sLs:'{p} W ile ulaşılan hız, rüzgarın her yönü ve şiddeti için. Kırmızı nokta şu anki durum.',
+pEmpty:'Bu eğimde rüzgar hangi yönden gelirse gelsin pedal gerekmiyor. Grafiği görmek için eğimi azalt ya da sabit güç moduna geç.',pSome:'Merkeze inen yönlerde pedal gerekmiyor; rüzgar ve eğim seni zaten itiyor.',
+l3:'3D sahne yükleniyor…',e3:'3D kütüphanesi yüklenemedi. Bağlantını kontrol edip tekrar dene.',lPl:'3D grafik yükleniyor…',ePl:'Grafik kütüphanesi yüklenemedi. Bağlantını kontrol edip tekrar dene.',
+hDir:'Yön',hWind:'Rüzgar',axDir:'Rüzgar yönü',axWind:'Rüzgar (km/sa)',axP:'Güç (W)',axS:'Hız (km/sa)',calmS:'Rüzgarsız',grade:'% eğim',
+dS:['Ön','Sağ','Arka','Sol'],dL:['Önden','Sağdan','Arkadan','Soldan'],pre:['Karşıdan','Sağ ön','Sağdan','Sağ arka','Arkadan','Sol arka','Soldan','Sol ön'],
+dn:['karşıdan','sağ çapraz önden','sağdan','sağ çapraz arkadan','arkadan','sol çapraz arkadan','soldan','sol çapraz önden'],
+bf:['sakin','esinti','hafif rüzgar','tatlı rüzgar','mutedil rüzgar','sert rüzgar','kuvvetli rüzgar','fırtınamsı','fırtına','kuvvetli fırtına','tam fırtına','şiddetli fırtına','kasırga'],
+share:'Paylaş',shT:'Ayarları paylaş',shP:'Bağlantıyı açan kişi aynı ayarlarla başlar.',copy:'Kopyala',copied:'Bağlantı kopyalandı.',copyFail:'Otomatik kopyalanamadı; bağlantı seçildi, elle kopyalayabilirsin.',shId:'Ayar kodu',loaded:'Paylaşılan ayarlar yüklendi.',badCode:'Bağlantıdaki ayar kodu geçersiz, varsayılan ayarlar açıldı.',
+posn:{'0.42':'dik','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}},
+en:{title:'Road bike wind resistance',doc:'Bike wind resistance',lead:'Drag the blue knob around the ring to set where the wind comes from, then set its strength and your speed. Required watts, drag and yaw angle update instantly.',
+view:'View',v2d:'Top-down (2D)',v3d:'3D scene',cvA:'Top-down view: rider on the road, airflow and wind direction ring',tip:'Drag',t3hint:'Drag to rotate · pinch or scroll to zoom',lg3:'Flow lines are illustrative, not a flow simulation.',lgTrue:'True wind (where it comes from)',lgApp:'Wind felt by the rider',
+stVa:'Apparent wind',stYaw:'Yaw angle',gWind:'Wind',gRide:'Ride',gEnv:'Rider, weather & tyres',aWind:'Wind settings',aRide:'Ride settings',aEnv:'Rider, weather and tyre settings',close:'Close',
+lW:'Wind speed',lD:'Wind direction (relative to heading)',chipsA:'Wind direction presets',modeA:'Calculation mode',mSpeed:'Fixed speed → watts',mPower:'Fixed power → speed',lV:'Your speed',lP:'Power',lPos:'Position',lG:'Gradient',lM:'Rider + bike',lT:'Temperature',lAlt:'Altitude',lCrr:'Tyre / road',
+o42:'Upright, on the tops (CdA 0.42)',o36:'On the hoods (0.36)',o32:'In the drops (0.32)',o29:'Aero hoods, flat forearms (0.29)',o23:'TT / triathlon aero bars (0.23)',
+c35:'Race tyre, smooth tarmac (Crr 0.0035)',c45:'Good tyre, normal tarmac (Crr 0.0045)',c60:'Training tyre, rough tarmac (Crr 0.006)',c80:'Cobbles / coarse surface (Crr 0.008)',
+ptA:'Chart type',pt2:'By direction',pt3:'Direction × strength (3D)',polarA:'Polar chart by wind direction',h2b:'Where the watts go',leadB:'How your power splits with the current settings. Green bars are forces pushing you along.',
+note:'Assumptions: 97% drivetrain efficiency, CdA held constant with yaw (deep rims may lose a little in crosswinds), crosswind tipping force ignored. Air density is derived from temperature and altitude. CdA values are typical amateur averages.',
+kmh:'km/h',deg:'degrees',noPedal:'W · no pedalling needed',brake:'You need to brake to hold {v} km/h. Freewheel speed ≈ {f} km/h',needed:'W needed',calm:'No wind',
+dWup:'No wind: {b} W · wind adds {d} W',dWdn:'No wind: {b} W · wind saves {d} W',dSup:'No wind: {b} km/h · wind gives +{d} km/h',dSdn:'No wind: {b} km/h · wind costs {d} km/h',balance:' · Hard to stay balanced at this speed',
+behind:'tailwind',push:'Wind push',aeroDrag:'Aero drag',bAero:'Aerodynamic',bRoll:'Rolling',bDesc:'Descent (gravity)',bClimb:'Climbing',bLoss:'Drivetrain loss',
+sumH:'Calculation',sumApp:'Apparent wind: speed {v} {sg} wind axial component {c} = {front}, {y} km/h from the side.',fr:'head-on',bk:'from behind',subApp:'app',subAx:'axial',aeroP:'Aero power = F × speed',sumBrake:'The net force is pushing you forward: holding this speed takes braking, not pedalling.',
+pTw:'How many watts, by wind direction?',pTs:'How fast, by wind direction?',pLw:'Power needed to hold {v} km/h, for every direction of a {w} km/h wind. The dashed circle is the no-wind case.',pLs:'Speed you reach at {p} W, for every direction of a {w} km/h wind. The dashed circle is the no-wind case.',
+sLw:'Power needed for {v} km/h, for every wind direction and strength. The red dot is your current setting. Rotate and zoom freely.',sLs:'Speed reached at {p} W, for every wind direction and strength. The red dot is your current setting.',
+pEmpty:'On this gradient no pedalling is needed whatever the wind direction. Lower the gradient or switch to fixed power to see the chart.',pSome:'Directions that dip to the centre need no pedalling; wind and gradient already push you.',
+l3:'Loading 3D scene…',e3:'Could not load the 3D library. Check your connection and try again.',lPl:'Loading 3D chart…',ePl:'Could not load the chart library. Check your connection and try again.',
+hDir:'Direction',hWind:'Wind',axDir:'Wind direction',axWind:'Wind (km/h)',axP:'Power (W)',axS:'Speed (km/h)',calmS:'No wind',grade:'% grade',
+dS:['Front','Right','Rear','Left'],dL:['Head','Right','Tail','Left'],pre:['Headwind','Front right','Right','Rear right','Tailwind','Rear left','Left','Front left'],
+dn:['headwind','front-right','from the right','rear-right','tailwind','rear-left','from the left','front-left'],
+bf:['calm','light air','light breeze','gentle breeze','moderate breeze','fresh breeze','strong breeze','near gale','gale','strong gale','storm','violent storm','hurricane'],
+share:'Share',shT:'Share these settings',shP:'Anyone who opens this link starts with the same settings.',copy:'Copy',copied:'Link copied.',copyFail:'Could not copy automatically; the link is selected so you can copy it yourself.',shId:'Settings code',loaded:'Shared settings loaded.',badCode:'The settings code in the link is invalid, so defaults were loaded.',
+posn:{'0.42':'upright','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}}};
+let LANG=(()=>{try{const s=localStorage.getItem('rz-lang');if(I18N[s])return s;}catch(e){}return /^tr/i.test(navigator.language||'tr')?'tr':'en';})();
+const t=(k,v)=>{let s=I18N[LANG][k]??I18N.tr[k]??k;if(v&&typeof s==='string')for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;};
+const KMH=()=>' '+t('kmh');
+const PRE=[0,45,90,135,180,225,270,315];
+const fmt=(x,n=0)=>x.toLocaleString(LANG==='tr'?'tr-TR':'en-GB',{minimumFractionDigits:n,maximumFractionDigits:n});
+const kmh=x=>x>=129.9?'130+':fmt(x,1);
+const rho=()=>1.225*(288.15/(S.t+273.15))*Math.exp(-S.alt/8500);
+function calc(vk,dir,wk){
+  const v=vk/3.6,w=(wk??S.w)/3.6,th=dir*Math.PI/180,r=rho();
+  const ax=v+w*Math.cos(th),ay=w*Math.sin(th),Va=Math.hypot(ax,ay);
+  const Fa=0.5*r*S.cda*Va*ax,a=Math.atan(S.g/100);
+  const Fr=S.crr*S.m*9.81*Math.cos(a),Fg=S.m*9.81*Math.sin(a);
+  const wheel=(Fa+Fr+Fg)*v,total=wheel>0?wheel/0.97:wheel;
+  return{v,ax,ay,Va,Fa,Pa:Fa*v,Pr:Fr*v,Pg:Fg*v,loss:total-wheel,total,yaw:Math.atan2(ay,ax)*180/Math.PI};
+}
+function speedFor(P,dir,wk){
+  let lo=0.5,hi=130;
+  if(calc(hi,dir,wk).total<P)return hi;
+  if(calc(lo,dir,wk).total>P)return lo;
+  for(let i=0;i<50;i++){const mid=(lo+hi)/2;if(calc(mid,dir,wk).total<P)lo=mid;else hi=mid;}
+  return (lo+hi)/2;
+}
+const beaufort=ms=>{const i=[0.3,1.6,3.4,5.5,8,10.8,13.9,17.2,20.8,24.5,28.5,32.7].findIndex(x=>ms<x);return i<0?12:i;};
+const dirName=d=>t('dn')[Math.round((((d%360)+360)%360)/45)%8];
+let cur=null,liveT=0,touched=false;
+
+function update(){
+  const vk=S.mode==='speed'?S.v:speedFor(S.P,S.d);
+  cur=calc(vk,S.d);
+  $('oV').textContent=fmt(S.v,1)+KMH();
+  $('oP').textContent=S.P+' W';
+  $('oW').textContent=S.w+KMH();
+  $('oD').textContent=S.d+'° · '+dirName(S.d);
+  $('d').setAttribute('aria-valuetext',S.d+' '+t('deg')+', '+dirName(S.d));
+  const kn=$('knob');kn.setAttribute('aria-valuenow',S.d);kn.setAttribute('aria-valuetext',S.d+' '+t('deg')+', '+dirName(S.d));
+  $('oG').textContent=(S.g>0?'+':'')+fmt(S.g,1)+' %';
+  $('oM').textContent=S.m+' kg';
+  $('oT').textContent=S.t+' °C';
+  $('oA').textContent=S.alt+' m';
+  const dl=$('delta');let cls='neutral',txt;
+  if(S.mode==='speed'){
+    if(cur.total<=0){
+      const free=speedFor(0,S.d);
+      $('bigV').textContent='0';$('bigU').textContent=t('noPedal');
+      txt=t('brake',{v:fmt(S.v,1),f:kmh(free)});
+    }else{
+      const base=Math.max(0,calc(S.v,0,0).total),diff=cur.total-base;
+      $('bigV').textContent=fmt(Math.round(cur.total));$('bigU').textContent=t('needed');
+      if(S.w===0)txt=t('calm');
+      else{txt=t(diff>=0?'dWup':'dWdn',{b:fmt(Math.round(base)),d:fmt(Math.abs(Math.round(diff)))});cls=diff>=0?'up':'down';}
+    }
+  }else{
+    const base=speedFor(S.P,0,0),diff=vk-base;
+    $('bigV').textContent=kmh(vk);$('bigU').textContent=t('kmh');
+    if(S.w===0)txt=t('calm');
+    else{txt=t(diff>=0?'dSup':'dSdn',{b:kmh(base),d:fmt(Math.abs(diff),1)});cls=diff>=0?'down':'up';}
+    if(vk<8)txt+=t('balance');
+  }
+  dl.textContent=txt;dl.className='delta '+cls;
+  if(typeof sums==='function')sums();
+  if(typeof scheduleHash==='function')scheduleHash();
+  $('sVa').textContent=fmt(cur.Va*3.6,1)+KMH();
+  $('sYaw').textContent=cur.ax<0?t('behind'):fmt(Math.abs(cur.yaw),1)+'°';
+  $('sFl').textContent=cur.Fa<0?t('push'):t('aeroDrag');
+  $('sF').textContent=fmt(Math.abs(cur.Fa),1)+' N';
+  const b=beaufort(S.w/3.6);$('sBf').textContent=b+' · '+t('bf')[b];
+  document.querySelectorAll('#chips button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.d===S.d));
+  clearTimeout(liveT);liveT=setTimeout(()=>{$('live').textContent=$('bigV').textContent+' '+$('bigU').textContent+'. '+txt;},700);
+  drawBars();drawPolar();
+  if(still)drawStage(0);
+}
+
+function drawBars(){
+  const c=cur,rows=[[c.Pa<0?t('push'):t('bAero'),c.Pa,'var(--wind)'],[t('bRoll'),c.Pr,'var(--ink)'],[c.Pg<0?t('bDesc'):t('bClimb'),c.Pg,'var(--muted)',1],[t('bLoss'),c.loss,'var(--line)']].filter(r=>Math.abs(r[1])>=0.5||!r[3]);
+  const mx=Math.max(1,...rows.map(r=>Math.abs(r[1])));
+  $('bars').innerHTML=rows.map(r=>`<div class="bar"><span>${r[0]}</span><span><i style="width:${Math.abs(r[1])/mx*100}%;background:${r[1]<0?'var(--help)':r[2]}"></i></span><span class="v">${r[1]<0?'−':''}${fmt(Math.abs(Math.round(r[1])))} W</span></div>`).join('');
+  const front=`<b>${fmt(Math.abs(c.ax)*3.6,1)}${KMH()}</b> `+(c.ax>=0?t('fr'):t('bk'));
+  let s=`<b>${t('sumH')}</b><br>${t('sumApp',{v:fmt(c.v*3.6,1),sg:c.ax-c.v>=0?'+':'−',c:fmt(Math.abs(c.ax-c.v)*3.6,1),front,y:fmt(Math.abs(c.ay)*3.6,1)})}<br><code>F = ½ · ρ · CdA · V<sub>${t('subApp')}</sub> · V<sub>${t('subAx')}</sub> = ½ · ${fmt(rho(),3)} · ${fmt(S.cda,2)} · ${fmt(c.Va,2)} · ${fmt(c.ax,2)} = ${fmt(c.Fa,1)} N</code><br>${t('aeroP')} = ${fmt(c.Fa,1)} × ${fmt(c.v,2)} m/s = <b>${fmt(Math.round(c.Pa))} W</b>`;
+  if(c.total<=0)s+='<br>'+t('sumBrake');
+  $('sum').innerHTML=s;
+}
+
+function drawPolar(){
+  const s=$('polar'),box=$('polarBox');if(!cur)return;
+  const sm=S.mode==='speed',unit=sm?' W':KMH(),narrow=box.clientWidth<440;
+  $('polarTitle').textContent=sm?t('pTw'):t('pTs');
+  if(surfOn){$('polarLead').textContent=sm?t('sLw',{v:fmt(S.v,1)}):t('sLs',{p:S.P});drawSurf();return;}
+  $('polarLead').textContent=sm?t('pLw',{v:fmt(S.v,1),w:S.w}):t('pLs',{p:S.P,w:S.w});
+  const val=d=>sm?calc(S.v,d).total:speedFor(S.P,d);
+  const pts=[];for(let d=0;d<=360;d+=3)pts.push([d,val(d)]);
+  const base=sm?calc(S.v,0,0).total:speedFor(S.P,0,0);
+  const top=Math.max(base,...pts.map(p=>p[1]));
+  if(top<=0){s.innerHTML='';box.classList.add('empty');$('pmsg').textContent=t('pEmpty');return;}
+  box.classList.remove('empty');const W=s.clientWidth,H=s.clientHeight;if(!W)return;$('pmsg').textContent=pts.some(p=>p[1]<=0)?t('pSome'):'';
+  const mx=top*1.08,cx=W/2,cy=H/2,R=Math.max(60,Math.min(W/2-(narrow?44:66),H/2-30));
+  const step=(()=>{const raw=mx/4,e=10**Math.floor(Math.log10(raw)),f=raw/e;return(f<=1?1:f<=2?2:f<=5?5:10)*e;})();
+  const xy=(d,v)=>{const r=Math.max(0,v)/mx*R,a=d*Math.PI/180;return[cx+r*Math.sin(a),cy-r*Math.cos(a)];};
+  const la=(S.d+200)%360;let h='';
+  for(let v=step;v<mx;v+=step){const r=v/mx*R;h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)"/>`;}
+  for(let d=0;d<360;d+=45){const[x,y]=xy(d,mx);h+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;}
+  for(let v=step;v<mx;v+=step){const[x,y]=xy(la,v);h+=`<text x="${x}" y="${y}" text-anchor="middle" dy="4">${fmt(v)}${unit}</text>`;}
+  const lab=(narrow?t('dS'):t('dL')).map((x,i)=>[i*90,x]);
+  lab.forEach(([d,t])=>{const[x,y]=xy(d,mx);const dx=Math.sin(d*Math.PI/180)*10,dy=-Math.cos(d*Math.PI/180)*14;h+=`<text x="${x+dx}" y="${y+dy+4}" text-anchor="${d===90?'start':d===270?'end':'middle'}" style="fill:var(--ink);font-weight:600">${t}</text>`;});
+  if(base>0){const br=base/mx*R;h+=`<circle cx="${cx}" cy="${cy}" r="${br}" fill="none" stroke="var(--ink)" stroke-dasharray="4 5" opacity=".6"/>`;}
+  const path=pts.map((p,i)=>{const[x,y]=xy(p[0],p[1]);return(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);}).join('')+'Z';
+  h+=`<path d="${path}" fill="var(--wind)" fill-opacity=".14" stroke="var(--wind)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const cv=val(S.d),[px,py]=xy(S.d,cv),txt=sm?(cv<=0?'0 W':fmt(Math.round(cv))+' W'):kmh(cv)+KMH();
+  h+=`<line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}" stroke="var(--drag)" stroke-width="2"/><circle cx="${px}" cy="${py}" r="7" fill="var(--drag)" stroke="var(--bg)" stroke-width="2"/>`;
+  const tw=txt.length*8.5+16,right=px<cx+R*0.3,bx=Math.min(W-tw-2,Math.max(2,right?px+12:px-12-tw)),by=Math.max(2,Math.min(H-28,py-34));
+  h+=`<rect x="${bx}" y="${by}" width="${tw}" height="26" rx="13" fill="var(--ink)"/><text x="${bx+tw/2}" y="${by+18}" text-anchor="middle" style="fill:var(--bg);stroke:none;font-weight:800;font-size:14px">${txt}</text>`;
+  s.innerHTML=h;
+}
+
+// stage
+const cv=$('cv'),ctx=cv.getContext('2d'),stage=$('stage'),knob=$('knob'),tip=$('tip');
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=0,H=0,col={},parts=[],dash=0,frame=0;
+const probe=document.createElement('span');probe.style.display='none';document.body.appendChild(probe);
+function colors(){['bg','ink','muted','road','lane','wind','drag','grass','line'].forEach(n=>{probe.style.color=`var(--${n})`;col[n]=getComputedStyle(probe).color;});}
+function size(){const dpr=devicePixelRatio||1;W=stage.clientWidth;H=stage.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  let sd=7;parts=Array.from({length:160},()=>{sd=sd*16807%2147483647;const a=sd/2147483647;sd=sd*16807%2147483647;return{x:a*W,y:sd/2147483647*H,l:0.5+((sd>>4)%100)/100};});drawStage(0);}
+function arrow(x1,y1,x2,y2,c,wd){const a=Math.atan2(y2-y1,x2-x1),hl=10+wd*1.6;ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=wd;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-Math.cos(a)*hl*0.7,y2-Math.sin(a)*hl*0.7);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-hl*Math.cos(a-0.45),y2-hl*Math.sin(a-0.45));ctx.lineTo(x2-hl*Math.cos(a+0.45),y2-hl*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+function pill(t,x,y,bg,fg){ctx.font='700 13px Figtree,system-ui,sans-serif';const w=ctx.measureText(t).width+14;x=Math.max(w/2+4,Math.min(W-w/2-4,x));y=Math.max(14,Math.min(H-14,y));ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect(x-w/2,y-11,w,22,11);ctx.fill();ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y+1);}
+function rider(cx,cy,u){
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(u*.12,u*.06,u*.16,u*.95,0,0,7);ctx.fill();
+  ctx.fillStyle='#111';[-0.62,0.62].forEach(y=>{ctx.beginPath();ctx.roundRect(-u*.045,y*u-u*.3,u*.09,u*.6,u*.04);ctx.fill();});
+  ctx.strokeStyle='#9aa1a8';ctx.lineWidth=u*.035;ctx.beginPath();ctx.moveTo(0,-u*.62);ctx.lineTo(0,u*.62);ctx.stroke();
+  ctx.lineWidth=u*.05;ctx.strokeStyle='#222';ctx.beginPath();ctx.moveTo(-u*.2,-u*.5);ctx.lineTo(u*.2,-u*.5);ctx.stroke();
+  ctx.fillStyle='#f3f4f5';ctx.beginPath();ctx.ellipse(0,0,u*.2,u*.42,0,0,7);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.14)';ctx.beginPath();ctx.ellipse(u*.07,u*.04,u*.1,u*.34,0,0,7);ctx.fill();
+  ctx.strokeStyle='#f3f4f5';ctx.lineWidth=u*.07;ctx.beginPath();ctx.moveTo(-u*.14,-u*.2);ctx.lineTo(-u*.19,-u*.48);ctx.moveTo(u*.14,-u*.2);ctx.lineTo(u*.19,-u*.48);ctx.stroke();
+  ctx.fillStyle='#2a2e33';ctx.beginPath();ctx.ellipse(0,-u*.4,u*.11,u*.14,0,0,7);ctx.fill();
+  ctx.restore();
+}
+function drawStage(dt){
+  if(!W||!cur||is3d)return;
+  if(frame++%60===0)colors();
+  const cx=W/2,cy=H/2,R=Math.min(W,H)/2,u=R*.4,rr=R-30;
+  ctx.fillStyle=col.grass;ctx.fillRect(0,0,W,H);
+  const rw=R*.6;ctx.fillStyle=col.road;ctx.fillRect(cx-rw/2,0,rw,H);
+  dash=(dash+cur.v*dt*0.012)%40;ctx.strokeStyle=col.lane;ctx.lineWidth=3;ctx.setLineDash([22,18]);ctx.lineDashOffset=-dash;ctx.beginPath();ctx.moveTo(cx-rw*.32,0);ctx.lineTo(cx-rw*.32,H);ctx.stroke();ctx.setLineDash([]);
+  ctx.globalAlpha=.6;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx-rw/2+4,0);ctx.lineTo(cx-rw/2+4,H);ctx.moveTo(cx+rw/2-4,0);ctx.lineTo(cx+rw/2-4,H);ctx.stroke();ctx.globalAlpha=1;
+  // airflow streaks in rider frame
+  const fx=-cur.ay,fy=cur.ax,sp=Math.hypot(fx,fy),k=0.014;
+  ctx.strokeStyle=col.wind;ctx.lineCap='round';
+  for(const p of parts){p.x+=fx*dt*k*p.l*1.6;p.y+=fy*dt*k*p.l*1.6;
+    if(p.x<-30)p.x+=W+60;if(p.x>W+30)p.x-=W+60;if(p.y<-30)p.y+=H+60;if(p.y>H+30)p.y-=H+60;
+    if(sp<0.05)continue;const L=Math.min(40,4+sp*1.6*p.l);
+    ctx.globalAlpha=.2+.3*p.l;ctx.lineWidth=1.2+p.l;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-fx/sp*L,p.y-fy/sp*L);ctx.stroke();}
+  ctx.globalAlpha=1;
+  rider(cx,cy,u);
+  // compass ring
+  ctx.strokeStyle=col.ink;ctx.globalAlpha=.22;ctx.lineWidth=14;ctx.beginPath();ctx.arc(cx,cy,rr,0,7);ctx.stroke();ctx.globalAlpha=1;
+  ctx.lineWidth=2;for(let a=0;a<360;a+=15){const t=a*Math.PI/180,l=a%90?4:9;ctx.globalAlpha=a%90?.45:.9;ctx.beginPath();ctx.moveTo(cx+Math.sin(t)*(rr-l),cy-Math.cos(t)*(rr-l));ctx.lineTo(cx+Math.sin(t)*(rr+l),cy-Math.cos(t)*(rr+l));ctx.stroke();}
+  ctx.globalAlpha=1;
+  t('dS').map((x,i)=>[i*90,x]).forEach(([a,tx])=>{let dd=Math.abs(((S.d-a)%360+540)%360-180);if(dd<28)return;const r2=a%180?rr-40:rr-26,x=cx+Math.sin(a*Math.PI/180)*r2,y=cy-Math.cos(a*Math.PI/180)*r2;
+    ctx.font='700 13px Figtree,system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=4;ctx.strokeStyle=a===0||a===180?col.road:col.grass;ctx.strokeText(tx,x,y);ctx.fillStyle=a===0||a===180?col.lane:col.ink;ctx.fillText(tx,x,y);});
+  const th=S.d*Math.PI/180,hx=cx+Math.sin(th)*rr,hy=cy-Math.cos(th)*rr;
+  // apparent wind arrow into rider (red), label offset sideways
+  if(sp>0.05){const L=Math.min(R*.42,20+sp*3.6*1.2),ux=fx/sp,uy=fy/sp,ex=cx-ux*u*.55,ey=cy-uy*u*.55,sx=ex-ux*L,sy=ey-uy*L;arrow(sx,sy,ex,ey,col.drag,6);
+    pill(fmt(cur.Va*3.6,0)+KMH(),(sx+ex)/2-uy*48,(sy+ey)/2+ux*48,col.drag,'#fff');}
+  // true wind arrow from knob inward (blue, drawn on top)
+  if(S.w>0){const len=Math.min(rr*.32,20+S.w*1.4),s0=26;arrow(hx-Math.sin(th)*s0,hy+Math.cos(th)*s0,hx-Math.sin(th)*(s0+len),hy+Math.cos(th)*(s0+len),col.wind,5);}
+  knob.style.transform=`translate(${hx-22}px,${hy-22}px)`;
+  if(!touched){const lft=Math.sin(th)>0.2;tip.style.transform=`translate(${lft?`calc(${hx-30}px - 100%)`:`${hx+30}px`},${hy-14}px)`;}
+}
+let last=performance.now();
+function loop(t){const dt=Math.min(50,t-last);last=t;drawStage(dt);requestAnimationFrame(loop);}
+
+function firstTouch(){if(touched)return;touched=true;tip.classList.add('gone');knob.classList.remove('pulse');}
+function setDir(e){const r=stage.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;if(Math.hypot(dx,dy)<r.width*.08)return;S.d=Math.round(((Math.atan2(dx,-dy)*180/Math.PI)+360)%360)%360;$('d').value=S.d;firstTouch();update();}
+let drag=false,tap=null;
+knob.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();drag=true;knob.setPointerCapture(e.pointerId);firstTouch();});
+knob.addEventListener('pointermove',e=>{if(drag)setDir(e);});
+knob.addEventListener('pointerup',()=>drag=false);knob.addEventListener('pointercancel',()=>drag=false);
+knob.addEventListener('keydown',e=>{const k={ArrowRight:5,ArrowUp:5,ArrowLeft:-5,ArrowDown:-5,PageUp:45,PageDown:-45}[e.key];if(k===undefined&&e.key!=='Home')return;e.preventDefault();S.d=e.key==='Home'?0:((S.d+k)%360+360)%360;$('d').value=S.d;firstTouch();update();});
+stage.addEventListener('pointerdown',e=>{if(e.target===knob)return;if(e.pointerType==='mouse'){drag=true;stage.setPointerCapture(e.pointerId);setDir(e);}else tap={x:e.clientX,y:e.clientY};});
+stage.addEventListener('pointermove',e=>{if(drag&&e.pointerType==='mouse')setDir(e);});
+stage.addEventListener('pointerup',e=>{if(tap&&Math.hypot(e.clientX-tap.x,e.clientY-tap.y)<10)setDir(e);tap=null;drag=false;});
+stage.addEventListener('pointercancel',()=>{tap=null;drag=false;});
+
+const chips=()=>{$('chips').innerHTML=PRE.map((d,i)=>`<button type="button" data-d="${d}" aria-pressed="${d===S.d}">${t('pre')[i]}</button>`).join('');};chips();
+$('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.d=+b.dataset.d;$('d').value=S.d;firstTouch();update();});
+const bind=(id,key)=>$(id).addEventListener('input',e=>{S[key]=Number(e.target.value);if(id==='d')firstTouch();update();});
+bind('v','v');bind('p','P');bind('w','w');bind('d','d');bind('g','g');bind('m','m');bind('t','t');bind('alt','alt');bind('pos','cda');bind('crr','crr');
+const setMode=m=>{S.mode=m;$('mSpeed').setAttribute('aria-pressed',m==='speed');$('mPower').setAttribute('aria-pressed',m==='power');$('rowV').hidden=m!=='speed';$('rowP').hidden=m!=='power';update();};
+$('mSpeed').addEventListener('click',()=>setMode('speed'));$('mPower').addEventListener('click',()=>setMode('power'));
+
+
+// ---------- lazy libs ----------
+const load=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+const URL3='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',URLOC='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js',URLPL='https://cdn.plot.ly/plotly-2.35.2.min.js';
+// ---------- 3D scene ----------
+let is3d=false,T=null,last3=0;
+function buildRider(M){
+  const g=new THREE.Group(),dark=M(0x1b1d20),white=M(0xf3f4f5),grey=M(0x9aa1a8),skin=M(0xd9a27a);
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const tube=(A,B,r,mat)=>{const L=A.distanceTo(B),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,L,12),mat);m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),B.clone().sub(A).normalize());g.add(m);};
+  const ball=(P,r,mat)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,20,14),mat);m.position.copy(P);g.add(m);};
+  [-0.52,0.48].forEach(z=>{const t=new THREE.Mesh(new THREE.TorusGeometry(0.34,0.028,10,48),dark);t.rotation.y=Math.PI/2;t.position.set(0,0.34,z);g.add(t);tube(V(0,0.34,z-0.3),V(0,0.34,z+0.3),0.008,grey);tube(V(0,0.04,z),V(0,0.64,z),0.008,grey);});
+  const rh=V(0,0.34,0.48),bb=V(0,0.3,0.05),st=V(0,0.82,0.16),hb=V(0,0.62,-0.38),ht=V(0,0.8,-0.42),fh=V(0,0.34,-0.52);
+  [[rh,bb],[bb,st],[st,rh],[bb,hb],[hb,ht],[st,ht],[hb,fh]].forEach(([a,b])=>tube(a,b,0.022,grey));
+  tube(V(0,0.8,-0.42),V(0,0.86,-0.5),0.02,grey);tube(V(-0.2,0.86,-0.5),V(0.2,0.86,-0.5),0.018,dark);
+  tube(V(0,0.82,0.16),V(0,0.9,0.18),0.015,grey);
+  ball(V(0,0.97,0.15),0.14,dark);
+  tube(V(0,0.98,0.13),V(0,1.3,-0.28),0.16,white);ball(V(0,1.3,-0.28),0.16,white);
+  ball(V(0,1.43,-0.46),0.105,skin);ball(V(0,1.47,-0.44),0.12,dark);
+  [-1,1].forEach(s=>{tube(V(s*0.17,1.28,-0.27),V(s*0.19,1.02,-0.4),0.045,white);tube(V(s*0.19,1.02,-0.4),V(s*0.2,0.88,-0.5),0.04,skin);
+    tube(V(s*0.1,0.97,0.15),V(s*0.12,0.7,-0.12),0.065,dark);tube(V(s*0.12,0.7,-0.12),V(s*0.13,0.27,0.0),0.05,skin);});
+  return g;
+}
+async function init3d(){
+  const msg=$('t3msg');
+  if(!window.THREE||!THREE.OrbitControls){msg.hidden=false;msg.textContent=t('l3');
+    try{if(!window.THREE)await load(URL3);if(!THREE.OrbitControls)await load(URLOC);}catch(e){msg.textContent=t('e3');return false;}}
+  msg.hidden=true;if(T)return true;
+  const host=$('three'),renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));host.appendChild(renderer.domElement);
+  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(42,1,0.1,120);cam.position.set(6.2,4.4,5.6);
+  const ctr=new THREE.OrbitControls(cam,renderer.domElement);ctr.target.set(0,0.55,0);ctr.enableDamping=true;ctr.maxPolarAngle=Math.PI*0.48;ctr.minDistance=2.5;ctr.maxDistance=16;ctr.enablePan=false;
+  ctr.addEventListener('start',()=>{$('t3hint').hidden=true;});
+  scene.add(new THREE.HemisphereLight(0xffffff,0x556070,0.95));const sun=new THREE.DirectionalLight(0xffffff,0.75);sun.position.set(3,6,2);scene.add(sun);
+  const M=c=>new THREE.MeshStandardMaterial({color:c,roughness:.75});
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(40,72),M(0xe8ecef));ground.rotation.x=-Math.PI/2;scene.add(ground);
+  const road=new THREE.Mesh(new THREE.PlaneGeometry(2.2,80),M(0x3b4046));road.rotation.x=-Math.PI/2;road.position.y=0.004;scene.add(road);
+  const lane=M(0xf4f4f4),dashes=new THREE.Group();for(let i=0;i<14;i++){const d=new THREE.Mesh(new THREE.PlaneGeometry(0.07,0.6),lane);d.rotation.x=-Math.PI/2;d.position.set(-0.4,0.008,-9+i*1.3);dashes.add(d);}scene.add(dashes);
+  scene.add(buildRider(M));
+  const ringM=new THREE.MeshBasicMaterial({color:0x14171a,transparent:true,opacity:.3,side:THREE.DoubleSide});
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2.92,3.04,120),ringM);ring.rotation.x=-Math.PI/2;ring.position.y=0.012;scene.add(ring);
+  const knobM=new THREE.MeshStandardMaterial({color:0x0a5cff,roughness:.4}),knob3=new THREE.Mesh(new THREE.SphereGeometry(0.13,24,16),knobM);scene.add(knob3);
+  const mkA=()=>{const m=new THREE.MeshStandardMaterial({roughness:.5}),g=new THREE.Group(),sh=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,1,14),m),hd=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.3,18),m);g.add(sh,hd);g.userData={m,sh,hd};scene.add(g);return g;};
+  const aTrue=mkA(),aApp=mkA();
+  const N=520,pos=new Float32Array(N*6),P=[];let sd=11;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
+  for(let i=0;i<N;i++)P.push({x:rnd()*5.6-2.8,y:0.08+rnd()*1.9,z:rnd()*12-6,l:0.5+rnd()*0.5});
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const lineM=new THREE.LineBasicMaterial({color:0x0a5cff,transparent:true,opacity:.4}),lines=new THREE.LineSegments(geo,lineM);lines.frustumCulled=false;scene.add(lines);
+  T={renderer,scene,cam,ctr,ground,road,lane,dashes,ringM,knobM,knob3,aTrue,aApp,P,pos,geo,lineM,host};
+  const ro3=new ResizeObserver(resize3d);ro3.observe(host);resize3d();theme3d();
+  return true;
+}
+function resize3d(){if(!T)return;const w=T.host.clientWidth,h=T.host.clientHeight;if(!w||!h)return;T.renderer.setSize(w,h,false);T.cam.aspect=w/h;T.cam.updateProjectionMatrix();}
+function theme3d(){if(!T)return;colors();T.ground.material.color.set(col.grass);T.road.material.color.set(col.road);T.lane.color.set(col.lane);T.ringM.color.set(col.ink);T.knobM.color.set(col.wind);T.lineM.color.set(col.wind);T.aTrue.userData.m.color.set(col.wind);T.aApp.userData.m.color.set(col.drag);}
+function setA(g,o,d,L){const u=g.userData;g.position.copy(o);g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d);u.sh.scale.y=Math.max(0.01,L-0.3);u.sh.position.y=(L-0.3)/2;u.hd.position.y=L-0.15;}
+function loop3d(t){
+  if(!is3d||!T)return;requestAnimationFrame(loop3d);
+  const dt=still?0:Math.min(0.05,(t-(last3||t))/1000);last3=t;
+  const th=S.d*Math.PI/180,sn=Math.sin(th),cs=Math.cos(th);
+  T.knob3.position.set(3*sn,0.13,-3*cs);
+  T.aTrue.visible=S.w>0;if(S.w>0){const L=0.5+S.w/70*1.3;setA(T.aTrue,new THREE.Vector3(2.9*sn,0.35,-2.9*cs),new THREE.Vector3(-sn,0,cs),L);}
+  const vx=-cur.ay,vz=cur.ax,sp=Math.hypot(vx,vz);
+  T.aApp.visible=sp>0.05;
+  if(sp>0.05){const ux=vx/sp,uz=vz/sp,L=0.5+cur.Va*3.6/100*1.5;setA(T.aApp,new THREE.Vector3(-ux*(L+0.5),1.15,-uz*(L+0.5)),new THREE.Vector3(ux,0,uz),L);}
+  T.dashes.children.forEach(d=>{d.position.z+=cur.v*dt*0.12;if(d.position.z>9)d.position.z-=18.2;});
+  const k=0.12,pos=T.pos,ux=sp?vx/sp:0,uz=sp?vz/sp:1;
+  T.P.forEach((p,i)=>{
+    p.x+=vx*k*dt*p.l*1.4;p.z+=vz*k*dt*p.l*1.4;
+    if(p.y<1.6){const ex=p.x/0.38,ez=p.z/0.78,r2=ex*ex+ez*ez;if(r2<1.6&&r2>0){const s=Math.sqrt(1.6/r2);p.x*=s;p.z*=s;}
+      const along=p.x*ux+p.z*uz,perp=Math.abs(p.x*uz-p.z*ux);if(along>0&&along<2.5&&perp<0.55&&dt){p.x+=(Math.random()-.5)*0.04;p.y+=(Math.random()-.5)*0.03;}}
+    if(p.x<-2.8)p.x+=5.6;if(p.x>2.8)p.x-=5.6;if(p.z<-6)p.z+=12;if(p.z>6)p.z-=12;if(p.y<0.05)p.y=0.05;if(p.y>2.0)p.y=2.0;
+    const L=sp<0.05?0:Math.min(0.55,0.05+cur.Va*0.03)*p.l,o=i*6;
+    pos[o]=p.x;pos[o+1]=p.y;pos[o+2]=p.z;pos[o+3]=p.x-ux*L;pos[o+4]=p.y;pos[o+5]=p.z-uz*L;});
+  T.geo.attributes.position.needsUpdate=true;
+  T.ctr.update();T.renderer.render(T.scene,T.cam);
+}
+async function setView(three){
+  $('v2d').setAttribute('aria-pressed',!three);$('v3d').setAttribute('aria-pressed',three);
+  $('three').hidden=!three;cv.style.visibility=three?'hidden':'visible';knob.style.display=three?'none':'';tip.style.display=three?'none':'';$('lg3').hidden=!three;
+  is3d=three;scheduleHash();
+  if(three){const ok=await init3d();if(!ok){const m=$('t3msg').textContent;setView(false);const t=$('t3msg');t.textContent=m;t.hidden=false;setTimeout(()=>{t.hidden=true;},4000);return;}if(!is3d)return;$('t3hint').hidden=false;setTimeout(()=>{$('t3hint').hidden=true;},6000);resize3d();last3=0;requestAnimationFrame(loop3d);}
+  else{$('t3msg').hidden=true;$('t3hint').hidden=true;drawStage(0);}
+}
+$('v2d').addEventListener('click',()=>setView(false));$('v3d').addEventListener('click',()=>setView(true));
+// ---------- 3D surface ----------
+let surfOn=false,surfQ=0;
+function drawSurf(){
+  if(!surfOn||!window.Plotly||!cur)return;cancelAnimationFrame(surfQ);
+  surfQ=requestAnimationFrame(()=>{
+    const sm=S.mode==='speed',dirs=[],ws=[];for(let d=0;d<=360;d+=10)dirs.push(d);for(let w=0;w<=70;w+=5)ws.push(w);
+    const f=(d,w)=>sm?Math.max(0,calc(S.v,d,w).total):speedFor(S.P,d,w);
+    const z=ws.map(w=>dirs.map(d=>f(d,w))),cz=f(S.d,S.w);colors();
+    const ax=(t,extra)=>Object.assign({title:{text:t},color:col.muted,gridcolor:col.line,zerolinecolor:col.line,backgroundcolor:'rgba(0,0,0,0)'},extra||{});
+    const unit=sm?'W':t('kmh');
+    Plotly.react('surf',[
+      {type:'surface',x:dirs,y:ws,z,colorscale:[[0,'#d6e4ff'],[0.45,'#0a5cff'],[1,'#c81e17']],showscale:false,opacity:.95,
+       contours:{z:{show:true,usecolormap:true,project:{z:true},width:1}},hovertemplate:`${t('hDir')} %{x}°<br>${t('hWind')} %{y}${KMH()}<br>%{z:.1f} ${unit}<extra></extra>`},
+      {type:'scatter3d',mode:'markers+text',x:[S.d],y:[S.w],z:[cz],marker:{size:7,color:col.drag,line:{color:col.bg,width:2}},
+       text:[sm?Math.round(cz)+' W':fmt(cz,1)+KMH()],textposition:'top center',textfont:{color:col.ink,size:14},hoverinfo:'skip'}],
+      {uirevision:'keep',margin:{l:0,r:0,t:0,b:0},paper_bgcolor:'rgba(0,0,0,0)',font:{family:'Figtree, system-ui, sans-serif',color:col.ink,size:12},showlegend:false,
+       scene:{xaxis:ax(t('axDir'),{tickvals:[0,90,180,270,360],ticktext:[...t('dS'),t('dS')[0]]}),yaxis:ax(t('axWind')),zaxis:ax(sm?t('axP'):t('axS'),{rangemode:'tozero'}),
+         camera:{eye:{x:1.55,y:-1.65,z:0.85}},aspectmode:'manual',aspectratio:{x:1.35,y:1,z:0.75}}},
+      {displayModeBar:false,responsive:true});
+  });
+}
+async function setPlot(three){
+  surfOn=three;$('pt2').setAttribute('aria-pressed',!three);$('pt3').setAttribute('aria-pressed',three);
+  $('polarBox').hidden=three;$('surf').hidden=!three;
+  if(three&&!window.Plotly){$('pmsg').textContent=t('lPl');try{await load(URLPL);}catch(e){$('pmsg').textContent=t('ePl');return;}}
+  if(three)$('pmsg').textContent='';
+  drawPolar();scheduleHash();
+}
+$('pt2').addEventListener('click',()=>setPlot(false));$('pt3').addEventListener('click',()=>setPlot(true));
+
+
+// ---------- toggle groups ----------
+const GR=[['gWind','pWind'],['gRide','pRide'],['gEnv','pEnv']];
+function openG(pid){GR.forEach(([b,pn])=>{const on=pn===pid&&$(pn).hidden;$(pn).hidden=!on;$(b).setAttribute('aria-expanded',on);});}
+GR.forEach(([b,pn])=>$(b).addEventListener('click',()=>openG(pn)));
+document.querySelectorAll('.gclose[data-close]').forEach(x=>x.addEventListener('click',()=>{const pn=x.dataset.close;$(pn).hidden=true;const g=GR.find(r=>r[1]===pn)[0];$(g).setAttribute('aria-expanded','false');$(g).focus();}));
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const o=GR.find(r=>!$(r[1]).hidden);if(o){$(o[1]).hidden=true;$(o[0]).setAttribute('aria-expanded','false');$(o[0]).focus();}});
+function sums(){
+  $('sumWind').textContent=S.w===0?t('calmS'):`${S.w}${KMH()} · ${dirName(S.d)} (${S.d}°)`;
+  $('sumRide').textContent=(S.mode==='speed'?fmt(S.v,1)+KMH():S.P+' W')+' · '+t('posn')[String(S.cda)]+' · '+(S.g>0?'+':'')+fmt(S.g,1)+t('grade');
+  $('sumEnv').textContent=`${S.m} kg · ${S.t} °C · ${S.alt} m · Crr ${fmt(S.crr,4)}`;
+}
+
+
+function applyLang(l){
+  if(l){LANG=l;try{localStorage.setItem('rz-lang',l);}catch(e){}}
+  document.documentElement.lang=LANG;document.title=t('doc');
+  document.querySelectorAll('[data-i]').forEach(el=>{el.textContent=t(el.dataset.i);});
+  document.querySelectorAll('[data-ia]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.ia)));
+  $('lgTR').setAttribute('aria-pressed',LANG==='tr');$('lgEN').setAttribute('aria-pressed',LANG==='en');
+  chips();update();
+}
+$('lgTR').addEventListener('click',()=>applyLang('tr'));$('lgEN').addEventListener('click',()=>applyLang('en'));
+
+
+// ---------- shareable settings code ----------
+const B62='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',CDA=['0.42','0.36','0.32','0.29','0.23'],CRR=['0.0035','0.0045','0.006','0.008'],CODELEN=12;
+const ART='https://claude.ai/artifact/RmEHDZtrc8U7BUvEpm3bto';
+let want3d=0,wantSurf=0,hashT=0;
+const FIELDS=[
+ [2,()=>S.mode==='power'?1:0,i=>{S.mode=i?'power':'speed';}],
+ [101,()=>Math.round((S.v-10)*2),i=>{S.v=10+i/2;}],
+ [91,()=>Math.round((S.P-50)/5),i=>{S.P=50+i*5;}],
+ [71,()=>S.w,i=>{S.w=i;}],
+ [360,()=>S.d,i=>{S.d=i;}],
+ [5,()=>CDA.indexOf(String(S.cda)),i=>{S.cda=+CDA[i];}],
+ [41,()=>Math.round((S.g+8)*2),i=>{S.g=-8+i/2;}],
+ [81,()=>S.m-50,i=>{S.m=50+i;}],
+ [46,()=>S.t+5,i=>{S.t=i-5;}],
+ [51,()=>Math.round(S.alt/50),i=>{S.alt=i*50;}],
+ [4,()=>CRR.indexOf(String(S.crr)),i=>{S.crr=+CRR[i];}],
+ [2,()=>is3d?1:0,i=>{want3d=i;}],
+ [2,()=>surfOn?1:0,i=>{wantSurf=i;}]];
+function encode(){
+  let n=0n;for(const[c,g]of FIELDS){const v=Math.min(c-1,Math.max(0,g()|0));n=n*BigInt(c)+BigInt(v);}
+  n=n*61n+(n*7n+13n)%61n;let s='';while(n>0n){s=B62[Number(n%62n)]+s;n/=62n;}
+  return s.padStart(CODELEN,'0');
+}
+function decode(s){
+  if(!/^[0-9a-zA-Z]{12}$/.test(s))return null;
+  let n=0n;for(const ch of s)n=n*62n+BigInt(B62.indexOf(ch));
+  const ck=n%61n;n/=61n;if((n*7n+13n)%61n!==ck)return null;
+  const idx=[];for(let k=FIELDS.length-1;k>=0;k--){const c=BigInt(FIELDS[k][0]);idx.unshift(Number(n%c));n/=c;}
+  return n===0n?idx:null;
+}
+function syncControls(){
+  [['v','v'],['p','P'],['w','w'],['d','d'],['g','g'],['m','m'],['t','t'],['alt','alt']].forEach(([id,k])=>{$(id).value=S[k];});
+  $('pos').value=String(S.cda);$('crr').value=String(S.crr);
+}
+const shareURL=code=>{let framed=true;try{framed=window.top!==window;}catch(e){}return (framed?ART:location.href.split('#')[0])+'#'+code;};
+function scheduleHash(){clearTimeout(hashT);hashT=setTimeout(()=>{const c=encode();if(location.hash.slice(1)===c)return;try{history.replaceState(null,'','#'+c);}catch(e){}},400);}
+let toastT=0;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;},3500);}
+function fromHash(initial){
+  const code=location.hash.slice(1);if(!code)return false;
+  const idx=decode(code);
+  if(!idx){if(initial)toast(t('badCode'));return false;}
+  idx.forEach((v,k)=>FIELDS[k][2](v));
+  syncControls();setMode(S.mode);
+  if(!!want3d!==is3d)setView(!!want3d);
+  if(!!wantSurf!==surfOn)setPlot(!!wantSurf);
+  touched=true;tip.classList.add('gone');knob.classList.remove('pulse');
+  toast(t('loaded'));return true;
+}
+window.addEventListener('hashchange',()=>fromHash(true));
+function openShare(){
+  const c=encode(),u=shareURL(c);
+  $('shUrl').value=u;$('shCode').textContent=c;$('shMsg').textContent='';
+  $('shareDlg').hidden=false;$('shCopy').focus();
+  try{history.replaceState(null,'','#'+c);}catch(e){}
+}
+function closeShare(){$('shareDlg').hidden=true;$('shareBtn').focus();}
+$('shareBtn').addEventListener('click',openShare);
+$('shClose').addEventListener('click',closeShare);
+$('shareDlg').addEventListener('click',e=>{if(e.target.id==='shareDlg')closeShare();});
+$('shCopy').addEventListener('click',()=>{
+  const u=$('shUrl').value,fail=()=>{$('shUrl').select();$('shMsg').textContent=t('copyFail');};
+  try{navigator.clipboard.writeText(u).then(()=>{$('shMsg').textContent=t('copied');},fail);}catch(e){fail();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shareDlg').hidden)closeShare();});
+
+colors();applyLang();fromHash(true);
+const ro=new ResizeObserver(()=>{size();drawPolar();});ro.observe(stage);ro.observe($('polarBox'));
+const mo=new MutationObserver(()=>{colors();drawStage(0);drawPolar();theme3d();});mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{colors();drawStage(0);drawPolar();theme3d();});
+if(!still)requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
