@@ -113,6 +113,19 @@ summary{cursor:pointer;font-weight:600;min-height:32px}
 .ghost{justify-self:end;font:600 15px Figtree,system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 @media(max-width:640px){.hdr{flex-wrap:wrap}.sharebtn span{display:none}.sharebtn{padding:0 12px}}
+.meth{max-width:960px}
+.meth h3{font-size:17px;font-weight:800;margin:22px 0 6px}
+.eq{margin:16px 0 8px;padding:14px 16px;background:var(--panel);border-radius:12px;overflow-x:auto}
+.eq code{font-size:15px;white-space:nowrap}
+.small{font-size:14px;color:var(--muted);margin:0}
+.ptab{border-collapse:collapse;width:100%;margin-top:12px;font-size:14px}
+.ptab th{text-align:left;font-weight:700;border-bottom:2px solid var(--ink);padding:8px 10px 8px 0}
+.ptab td{vertical-align:top;border-bottom:1px solid var(--line);padding:8px 10px 8px 0}
+.ptab td:nth-child(2){white-space:nowrap}
+.meth ul{padding-left:20px;margin:0}.meth li{margin:4px 0}
+.refs{padding-left:22px;font-size:14px}.refs li{margin:6px 0}
+.refs a,.note a{color:var(--wind);overflow-wrap:anywhere}
+@media(max-width:640px){.ptab td:nth-child(2){white-space:normal}}
 .fig.empty{min-height:0;margin:0}
 .pmsg{font-size:14px;color:var(--muted);margin:6px 0 0;min-height:1.4em}
 svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
@@ -226,6 +239,73 @@ svg text{font:13px Figtree,system-ui,sans-serif;fill:var(--muted);paint-order:st
 </div>
 </div></section>
 
+<section class="band" id="method" style="border-top:1px solid var(--line)"><div class="wrap">
+<div class="meth" lang="tr">
+<h2>Yöntem ve kaynaklar</h2>
+<p class="lead">Hesaplar, sahada güç ölçerle doğrulanmış Martin ve ark. (1998) yol bisikleti güç modeline dayanır. Ölçülen ve tahmin edilen güç arasında R² = 0,97, standart hata 2,7 W bulunmuştur [1].</p>
+<div class="eq"><code>P = [ ½·ρ·(CdA·k(β) + F<sub>w</sub>)·V<sub>a</sub>·|V<sub>a</sub>|·V + C<sub>rr</sub>·m·g·cos(atan G)·V + m·g·sin(atan G)·V + V·(91 + 8,7·V)·10⁻³ ] / E<sub>c</sub></code></div>
+<p class="small">V: yer hızı (m/s) · V<sub>a</sub> = V + V<sub>r</sub>·cos(θ): rüzgarın gidiş eksenindeki bileşeniyle hava hızı · β = atan(V<sub>r</sub>·sin θ / V<sub>a</sub>): yaw açısı · G: eğim · m: sürücü + bisiklet kütlesi · g = 9,81 m/s². Sabit hız varsayılır; ivmelenme hesaba katılmaz.</p>
+<div class="scroll"><table class="ptab"><thead><tr><th>Terim</th><th>Değer</th><th>Kaynak</th></tr></thead><tbody>
+<tr><td>Rüzgarın bileşenlere ayrılması, V<sub>a</sub> ve β</td><td>V<sub>a</sub> = V + V<sub>r</sub>·cos θ</td><td>Martin ve ark. 1998 [1]</td></tr>
+<tr><td>Yaw'a göre CdA çarpanı k(β)</td><td>0°: 1 · 5°–10°: 0,985 · 15° ve üstü: 0,948</td><td>[1] Tablo 1'deki rüzgar tüneli ölçümlerinin oranı (0,269 / 0,265 / 0,255 m²). 15°'nin ötesi ölçülmemiştir; son değer sabit tutulur.</td></tr>
+<tr><td>Dönen tekerleklerin ek direnç alanı F<sub>w</sub></td><td>0,0044 m²</td><td>[1]</td></tr>
+<tr><td>Rulman sürtünmesi</td><td>V·(91 + 8,7·V)·10⁻³ W</td><td>[1] Denk. 7 (Dahn ve ark. 1991 verisinden)</td></tr>
+<tr><td>Aktarma verimi E<sub>c</sub></td><td>0,976</td><td>[1] (SRM ile volan gücü arasındaki %2,36 kayıp)</td></tr>
+<tr><td>Hava yoğunluğu ρ</td><td>p = 101325·(1 − 2,25577·10⁻⁵·h)<sup>5,25588</sup>; ρ = p / (287,05·T)</td><td>Uluslararası Standart Atmosfer basınç-yükseklik ilişkisi (ISO 2533) ve ideal gaz yasası; sıcaklık kullanıcının girdiği değerdir. Nem ihmal edilir (etkisi %1'in altında).</td></tr>
+<tr><td>Yuvarlanma direnci C<sub>rr</sub></td><td>0,0035 – 0,008</td><td>[1] 0,0032 kullanmıştır (Kyle 1988'in yarış lastiği ölçümleri: 0,0027–0,0040). Antrenman lastiği ve bozuk yol değerleri tahminidir; hakemli kaynak sınırlıdır.</td></tr>
+<tr><td>Pozisyon CdA ön ayarları</td><td>0,23 – 0,42 m²</td><td>Tipik amatör sürücü tahminleri. Literatür aralığı yaklaşık 0,20–0,48 m² [2]. Karşılaştırma için elit bir sürücünün rüzgar tünelinde bisikletiyle ölçülen değerleri: dik 0,270, alt gidon 0,243, zamana karşı 0,211 m² [3].</td></tr>
+</tbody></table></div>
+<h3>Sınırlamalar</h3>
+<ul>
+<li>Yan rüzgar yalnızca yaw açısı ve CdA çarpanı üzerinden etki eder; [1]'de CdA 0–15° arasında anlamlı değişmemiştir. Güçlü yan rüzgarda ve düşük hızda (β &gt; 15°) belirsizlik artar.</li>
+<li>Draft (rüzgar arkası) hesaba katılmaz. Grup içinde direnç çok daha düşüktür; pelotonun ortasında tek sürücünün %5–10'una kadar inebilir [5].</li>
+<li>Rakımın vücudun ürettiği güce etkisi (oksijen azlığı) modellenmez; yalnızca hava yoğunluğu değişir. Bu iki etkinin dengesi için bkz. [4].</li>
+<li>Rüzgar sabit ve yer seviyesinde kabul edilir; arazi, ağaç ve bina korumasıyla gerçek rüzgar daha düşük olabilir.</li>
+</ul>
+<h3>Kaynaklar</h3>
+<ol class="refs">
+<li>Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., & Coggan, A. R. (1998). Validation of a mathematical model for road cycling power. <i>Journal of Applied Biomechanics</i>, 14(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">doi:10.1123/jab.14.3.276</a></li>
+<li>Debraux, P., Grappe, F., Manolova, A. V., & Bertucci, W. (2011). Aerodynamic drag in cycling: methods of assessment. <i>Sports Biomechanics</i>, 10(3), 197–218. <a href="https://doi.org/10.1080/14763141.2011.592209">doi:10.1080/14763141.2011.592209</a></li>
+<li>Defraeye, T., Blocken, B., Koninckx, E., Hespel, P., & Carmeliet, J. (2010). Aerodynamic study of different cyclist positions: CFD analysis and full-scale wind-tunnel tests. <i>Journal of Biomechanics</i>, 43(7), 1262–1268. <a href="https://doi.org/10.1016/j.jbiomech.2010.01.025">doi:10.1016/j.jbiomech.2010.01.025</a></li>
+<li>Bassett, D. R., Kyle, C. R., Passfield, L., Broker, J. P., & Burke, E. R. (1999). Comparing cycling world hour records, 1967–1996: modeling with empirical data. <i>Medicine & Science in Sports & Exercise</i>, 31(11), 1665–1676. <a href="https://doi.org/10.1097/00005768-199911000-00025">doi:10.1097/00005768-199911000-00025</a></li>
+<li>Blocken, B., van Druenen, T., Toparlar, Y., Malizia, F., Mannion, P., Andrianne, T., Marchal, T., Maas, G.-J., & Diepens, J. (2018). Aerodynamic drag in cycling pelotons: new insights by CFD simulation and wind tunnel testing. <i>Journal of Wind Engineering and Industrial Aerodynamics</i>, 179, 319–337. <a href="https://doi.org/10.1016/j.jweia.2018.06.011">doi:10.1016/j.jweia.2018.06.011</a></li>
+<li>ISO 2533:1975. Standard Atmosphere. International Organization for Standardization.</li>
+</ol>
+</div>
+<div class="meth" lang="en" hidden>
+<h2>Method & sources</h2>
+<p class="lead">Calculations follow the Martin et al. (1998) road cycling power model, validated in the field with a power meter: measured and predicted power correlated at R² = 0.97 with a standard error of 2.7 W [1].</p>
+<div class="eq"><code>P = [ ½·ρ·(CdA·k(β) + F<sub>w</sub>)·V<sub>a</sub>·|V<sub>a</sub>|·V + C<sub>rr</sub>·m·g·cos(atan G)·V + m·g·sin(atan G)·V + V·(91 + 8.7·V)·10⁻³ ] / E<sub>c</sub></code></div>
+<p class="small">V: ground speed (m/s) · V<sub>a</sub> = V + V<sub>w</sub>·cos(θ): air speed along the direction of travel · β = atan(V<sub>w</sub>·sin θ / V<sub>a</sub>): yaw angle · G: gradient · m: rider + bike mass · g = 9.81 m/s². Steady speed is assumed; acceleration is not modelled.</p>
+<div class="scroll"><table class="ptab"><thead><tr><th>Term</th><th>Value</th><th>Source</th></tr></thead><tbody>
+<tr><td>Wind components, V<sub>a</sub> and β</td><td>V<sub>a</sub> = V + V<sub>w</sub>·cos θ</td><td>Martin et al. 1998 [1]</td></tr>
+<tr><td>CdA multiplier by yaw k(β)</td><td>0°: 1 · 5°–10°: 0.985 · 15° and above: 0.948</td><td>Ratio of the wind-tunnel values in [1] Table 1 (0.269 / 0.265 / 0.255 m²). Yaw beyond 15° was not measured; the last value is held.</td></tr>
+<tr><td>Rotating wheel drag area F<sub>w</sub></td><td>0.0044 m²</td><td>[1]</td></tr>
+<tr><td>Wheel bearing friction</td><td>V·(91 + 8.7·V)·10⁻³ W</td><td>[1] Eq. 7 (from Dahn et al. 1991 data)</td></tr>
+<tr><td>Drivetrain efficiency E<sub>c</sub></td><td>0.976</td><td>[1] (2.36% loss between SRM and flywheel power)</td></tr>
+<tr><td>Air density ρ</td><td>p = 101325·(1 − 2.25577·10⁻⁵·h)<sup>5.25588</sup>; ρ = p / (287.05·T)</td><td>International Standard Atmosphere pressure–altitude relation (ISO 2533) and the ideal gas law; temperature is the value you enter. Humidity is ignored (effect under 1%).</td></tr>
+<tr><td>Rolling resistance C<sub>rr</sub></td><td>0.0035 – 0.008</td><td>[1] used 0.0032 (Kyle 1988 race-tyre measurements: 0.0027–0.0040). Training-tyre and rough-road values are estimates; peer-reviewed data are limited.</td></tr>
+<tr><td>Position CdA presets</td><td>0.23 – 0.42 m²</td><td>Typical amateur estimates. Literature range roughly 0.20–0.48 m² [2]. For comparison, wind-tunnel values for an elite rider with bike: upright 0.270, dropped 0.243, time trial 0.211 m² [3].</td></tr>
+</tbody></table></div>
+<h3>Limitations</h3>
+<ul>
+<li>Crosswind acts only through the yaw angle and the CdA multiplier; in [1] CdA did not change significantly between 0 and 15°. Uncertainty grows in strong crosswinds at low speed (β &gt; 15°).</li>
+<li>Drafting is not included. Drag inside a group is much lower, down to 5–10% of a solo rider in the middle of a peloton [5].</li>
+<li>The effect of altitude on the power your body can produce (less oxygen) is not modelled; only air density changes. See [4] for how the two effects balance.</li>
+<li>Wind is assumed constant at rider height; terrain, trees and buildings can shelter you from much of the forecast wind.</li>
+</ul>
+<h3>References</h3>
+<ol class="refs">
+<li>Martin, J. C., Milliken, D. L., Cobb, J. E., McFadden, K. L., & Coggan, A. R. (1998). Validation of a mathematical model for road cycling power. <i>Journal of Applied Biomechanics</i>, 14(3), 276–291. <a href="https://doi.org/10.1123/jab.14.3.276">doi:10.1123/jab.14.3.276</a></li>
+<li>Debraux, P., Grappe, F., Manolova, A. V., & Bertucci, W. (2011). Aerodynamic drag in cycling: methods of assessment. <i>Sports Biomechanics</i>, 10(3), 197–218. <a href="https://doi.org/10.1080/14763141.2011.592209">doi:10.1080/14763141.2011.592209</a></li>
+<li>Defraeye, T., Blocken, B., Koninckx, E., Hespel, P., & Carmeliet, J. (2010). Aerodynamic study of different cyclist positions: CFD analysis and full-scale wind-tunnel tests. <i>Journal of Biomechanics</i>, 43(7), 1262–1268. <a href="https://doi.org/10.1016/j.jbiomech.2010.01.025">doi:10.1016/j.jbiomech.2010.01.025</a></li>
+<li>Bassett, D. R., Kyle, C. R., Passfield, L., Broker, J. P., & Burke, E. R. (1999). Comparing cycling world hour records, 1967–1996: modeling with empirical data. <i>Medicine & Science in Sports & Exercise</i>, 31(11), 1665–1676. <a href="https://doi.org/10.1097/00005768-199911000-00025">doi:10.1097/00005768-199911000-00025</a></li>
+<li>Blocken, B., van Druenen, T., Toparlar, Y., Malizia, F., Mannion, P., Andrianne, T., Marchal, T., Maas, G.-J., & Diepens, J. (2018). Aerodynamic drag in cycling pelotons: new insights by CFD simulation and wind tunnel testing. <i>Journal of Wind Engineering and Industrial Aerodynamics</i>, 179, 319–337. <a href="https://doi.org/10.1016/j.jweia.2018.06.011">doi:10.1016/j.jweia.2018.06.011</a></li>
+<li>ISO 2533:1975. Standard Atmosphere. International Organization for Standardization.</li>
+</ol>
+</div>
+</div></section>
+
 <div id="shareDlg" class="dlg" hidden><div class="dlgbox" role="dialog" aria-modal="true" aria-labelledby="shT">
 <h2 id="shT" data-i="shT">Ayarları paylaş</h2>
 <p class="lead" data-i="shP">Bağlantıyı açan kişi aynı ayarlarla başlar.</p>
@@ -247,7 +327,7 @@ lW:'Rüzgar şiddeti',lD:'Rüzgar yönü (gidişe göre)',chipsA:'Hazır rüzgar
 o42:'Dik, gidon üstü (CdA 0,42)',o36:'Fren kolu üstü – hoods (0,36)',o32:'Alt gidon – drops (0,32)',o29:'Aero hoods, önkollar yatay (0,29)',o23:'TT / triatlon aero bar (0,23)',
 c35:'Yarış lastiği, pürüzsüz asfalt (Crr 0,0035)',c45:'İyi lastik, normal asfalt (Crr 0,0045)',c60:'Antrenman lastiği, bozuk asfalt (Crr 0,006)',c80:'Parke / kaba yüzey (Crr 0,008)',
 ptA:'Grafik türü',pt2:'Yöne göre',pt3:'Yön × şiddet (3D)',polarA:'Rüzgar yönüne göre kutupsal grafik',h2b:'Watt nereye gidiyor',leadB:'Şu anki ayarlarla gücün dağılımı. Yeşil çubuklar seni iten kuvvetlerdir.',
-note:'Varsayımlar: aktarma verimi %97, CdA yaw açısıyla sabit kabul edildi (derin jantlarda yan rüzgarda biraz düşebilir), yan rüzgarın devirme etkisi hesaba katılmadı. Hava yoğunluğu sıcaklık ve rakımdan hesaplanır. CdA değerleri tipik amatör sürücü ortalamalarıdır.',
+note:'Model Martin ve ark. (1998) yol bisikleti güç modelidir. Formüller, parametreler, kaynaklar ve sınırlamalar aşağıdaki Yöntem ve kaynaklar bölümünde.',
 kmh:'km/sa',deg:'derece',noPedal:'W · pedal gerekmez',brake:"{v} km/sa'yı korumak için fren gerekir. Serbest hız ≈ {f} km/sa",needed:'W gerekli',calm:'Rüzgarsız hava',
 dWup:'Rüzgarsız: {b} W · rüzgar +{d} W ekliyor',dWdn:'Rüzgarsız: {b} W · rüzgar −{d} W kazandırıyor',dSup:'Rüzgarsız: {b} km/sa · rüzgar +{d} km/sa kazandırıyor',dSdn:'Rüzgarsız: {b} km/sa · rüzgar −{d} km/sa kaybettiriyor',balance:' · Bu hızda dengede kalmak zor',
 behind:'arkadan',push:'Rüzgar itişi',aeroDrag:'Aero sürtünme',bAero:'Aerodinamik',bRoll:'Yuvarlanma',bDesc:'İniş (yerçekimi)',bClimb:'Tırmanma',bLoss:'Aktarma kaybı',
@@ -261,6 +341,7 @@ dS:['Ön','Sağ','Arka','Sol'],dL:['Önden','Sağdan','Arkadan','Soldan'],pre:['
 dn:['karşıdan','sağ çapraz önden','sağdan','sağ çapraz arkadan','arkadan','sol çapraz arkadan','soldan','sol çapraz önden'],
 bf:['sakin','esinti','hafif rüzgar','tatlı rüzgar','mutedil rüzgar','sert rüzgar','kuvvetli rüzgar','fırtınamsı','fırtına','kuvvetli fırtına','tam fırtına','şiddetli fırtına','kasırga'],
 share:'Paylaş',shT:'Ayarları paylaş',shP:'Bağlantıyı açan kişi aynı ayarlarla başlar.',copy:'Kopyala',copied:'Bağlantı kopyalandı.',copyFail:'Otomatik kopyalanamadı; bağlantı seçildi, elle kopyalayabilirsin.',shId:'Ayar kodu',loaded:'Paylaşılan ayarlar yüklendi.',badCode:'Bağlantıdaki ayar kodu geçersiz, varsayılan ayarlar açıldı.',
+bBear:'Rulman sürtünmesi',
 posn:{'0.42':'dik','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}},
 en:{title:'Road bike wind resistance',doc:'Bike wind resistance',lead:'Drag the blue knob around the ring to set where the wind comes from, then set its strength and your speed. Required watts, drag and yaw angle update instantly.',
 view:'View',v2d:'Top-down (2D)',v3d:'3D scene',cvA:'Top-down view: rider on the road, airflow and wind direction ring',tip:'Drag',t3hint:'Drag to rotate · pinch or scroll to zoom',lg3:'Flow lines are illustrative, not a flow simulation.',lgTrue:'True wind (where it comes from)',lgApp:'Wind felt by the rider',
@@ -269,7 +350,7 @@ lW:'Wind speed',lD:'Wind direction (relative to heading)',chipsA:'Wind direction
 o42:'Upright, on the tops (CdA 0.42)',o36:'On the hoods (0.36)',o32:'In the drops (0.32)',o29:'Aero hoods, flat forearms (0.29)',o23:'TT / triathlon aero bars (0.23)',
 c35:'Race tyre, smooth tarmac (Crr 0.0035)',c45:'Good tyre, normal tarmac (Crr 0.0045)',c60:'Training tyre, rough tarmac (Crr 0.006)',c80:'Cobbles / coarse surface (Crr 0.008)',
 ptA:'Chart type',pt2:'By direction',pt3:'Direction × strength (3D)',polarA:'Polar chart by wind direction',h2b:'Where the watts go',leadB:'How your power splits with the current settings. Green bars are forces pushing you along.',
-note:'Assumptions: 97% drivetrain efficiency, CdA held constant with yaw (deep rims may lose a little in crosswinds), crosswind tipping force ignored. Air density is derived from temperature and altitude. CdA values are typical amateur averages.',
+note:'The model is the Martin et al. (1998) road cycling power model. Formulas, parameters, sources and limitations are in the Method & sources section below.',
 kmh:'km/h',deg:'degrees',noPedal:'W · no pedalling needed',brake:'You need to brake to hold {v} km/h. Freewheel speed ≈ {f} km/h',needed:'W needed',calm:'No wind',
 dWup:'No wind: {b} W · wind adds {d} W',dWdn:'No wind: {b} W · wind saves {d} W',dSup:'No wind: {b} km/h · wind gives +{d} km/h',dSdn:'No wind: {b} km/h · wind costs {d} km/h',balance:' · Hard to stay balanced at this speed',
 behind:'tailwind',push:'Wind push',aeroDrag:'Aero drag',bAero:'Aerodynamic',bRoll:'Rolling',bDesc:'Descent (gravity)',bClimb:'Climbing',bLoss:'Drivetrain loss',
@@ -283,6 +364,7 @@ dS:['Front','Right','Rear','Left'],dL:['Head','Right','Tail','Left'],pre:['Headw
 dn:['headwind','front-right','from the right','rear-right','tailwind','rear-left','from the left','front-left'],
 bf:['calm','light air','light breeze','gentle breeze','moderate breeze','fresh breeze','strong breeze','near gale','gale','strong gale','storm','violent storm','hurricane'],
 share:'Share',shT:'Share these settings',shP:'Anyone who opens this link starts with the same settings.',copy:'Copy',copied:'Link copied.',copyFail:'Could not copy automatically; the link is selected so you can copy it yourself.',shId:'Settings code',loaded:'Shared settings loaded.',badCode:'The settings code in the link is invalid, so defaults were loaded.',
+bBear:'Bearing friction',
 posn:{'0.42':'upright','0.36':'hoods','0.32':'drops','0.29':'aero hoods','0.23':'TT'}}};
 let LANG=(()=>{try{const s=localStorage.getItem('rz-lang');if(I18N[s])return s;}catch(e){}return /^tr/i.test(navigator.language||'tr')?'tr':'en';})();
 const t=(k,v)=>{let s=I18N[LANG][k]??I18N.tr[k]??k;if(v&&typeof s==='string')for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;};
@@ -290,14 +372,17 @@ const KMH=()=>' '+t('kmh');
 const PRE=[0,45,90,135,180,225,270,315];
 const fmt=(x,n=0)=>x.toLocaleString(LANG==='tr'?'tr-TR':'en-GB',{minimumFractionDigits:n,maximumFractionDigits:n});
 const kmh=x=>x>=129.9?'130+':fmt(x,1);
-const rho=()=>1.225*(288.15/(S.t+273.15))*Math.exp(-S.alt/8500);
+const rho=()=>101325*Math.pow(1-2.25577e-5*S.alt,5.25588)/(287.05*(S.t+273.15));
+const FW=0.0044,EC=0.976,YK=[[0,1],[5,0.265/0.269],[10,0.265/0.269],[15,0.255/0.269]];
+const yawK=b=>{if(b>=15)return YK[3][1];for(let i=1;i<YK.length;i++)if(b<=YK[i][0]){const[a0,k0]=YK[i-1],[a1,k1]=YK[i];return k0+(k1-k0)*(b-a0)/(a1-a0);}return 1;};
 function calc(vk,dir,wk){
   const v=vk/3.6,w=(wk??S.w)/3.6,th=dir*Math.PI/180,r=rho();
   const ax=v+w*Math.cos(th),ay=w*Math.sin(th),Va=Math.hypot(ax,ay);
-  const Fa=0.5*r*S.cda*Va*ax,a=Math.atan(S.g/100);
-  const Fr=S.crr*S.m*9.81*Math.cos(a),Fg=S.m*9.81*Math.sin(a);
-  const wheel=(Fa+Fr+Fg)*v,total=wheel>0?wheel/0.97:wheel;
-  return{v,ax,ay,Va,Fa,Pa:Fa*v,Pr:Fr*v,Pg:Fg*v,loss:total-wheel,total,yaw:Math.atan2(ay,ax)*180/Math.PI};
+  const beta=Math.atan2(Math.abs(ay),Math.abs(ax))*180/Math.PI,k=yawK(beta),A=S.cda*k+FW;
+  const Fa=0.5*r*A*ax*Math.abs(ax),a=Math.atan(S.g/100);
+  const Fr=S.crr*S.m*9.81*Math.cos(a),Fg=S.m*9.81*Math.sin(a),Pb=v*(91+8.7*v)*1e-3;
+  const wheel=(Fa+Fr+Fg)*v+Pb,total=wheel>0?wheel/EC:wheel;
+  return{v,ax,ay,Va,Fa,k,A,Pa:Fa*v,Pr:Fr*v,Pg:Fg*v,Pb,loss:total-wheel,total,yaw:Math.atan2(ay,ax)*180/Math.PI};
 }
 function speedFor(P,dir,wk){
   let lo=0.5,hi=130;
@@ -357,11 +442,11 @@ function update(){
 }
 
 function drawBars(){
-  const c=cur,rows=[[c.Pa<0?t('push'):t('bAero'),c.Pa,'var(--wind)'],[t('bRoll'),c.Pr,'var(--ink)'],[c.Pg<0?t('bDesc'):t('bClimb'),c.Pg,'var(--muted)',1],[t('bLoss'),c.loss,'var(--line)']].filter(r=>Math.abs(r[1])>=0.5||!r[3]);
+  const c=cur,rows=[[c.Pa<0?t('push'):t('bAero'),c.Pa,'var(--wind)'],[t('bRoll'),c.Pr,'var(--ink)'],[c.Pg<0?t('bDesc'):t('bClimb'),c.Pg,'var(--muted)',1],[t('bBear'),c.Pb,'var(--line)'],[t('bLoss'),c.loss,'var(--line)']].filter(r=>Math.abs(r[1])>=0.5||!r[3]);
   const mx=Math.max(1,...rows.map(r=>Math.abs(r[1])));
   $('bars').innerHTML=rows.map(r=>`<div class="bar"><span>${r[0]}</span><span><i style="width:${Math.abs(r[1])/mx*100}%;background:${r[1]<0?'var(--help)':r[2]}"></i></span><span class="v">${r[1]<0?'−':''}${fmt(Math.abs(Math.round(r[1])))} W</span></div>`).join('');
   const front=`<b>${fmt(Math.abs(c.ax)*3.6,1)}${KMH()}</b> `+(c.ax>=0?t('fr'):t('bk'));
-  let s=`<b>${t('sumH')}</b><br>${t('sumApp',{v:fmt(c.v*3.6,1),sg:c.ax-c.v>=0?'+':'−',c:fmt(Math.abs(c.ax-c.v)*3.6,1),front,y:fmt(Math.abs(c.ay)*3.6,1)})}<br><code>F = ½ · ρ · CdA · V<sub>${t('subApp')}</sub> · V<sub>${t('subAx')}</sub> = ½ · ${fmt(rho(),3)} · ${fmt(S.cda,2)} · ${fmt(c.Va,2)} · ${fmt(c.ax,2)} = ${fmt(c.Fa,1)} N</code><br>${t('aeroP')} = ${fmt(c.Fa,1)} × ${fmt(c.v,2)} m/s = <b>${fmt(Math.round(c.Pa))} W</b>`;
+  let s=`<b>${t('sumH')}</b><br>${t('sumApp',{v:fmt(c.v*3.6,1),sg:c.ax-c.v>=0?'+':'−',c:fmt(Math.abs(c.ax-c.v)*3.6,1),front,y:fmt(Math.abs(c.ay)*3.6,1)})}<br><code>F = ½ · ρ · (CdA · k(β) + F<sub>w</sub>) · V<sub>${t('subAx')}</sub>² = ½ · ${fmt(rho(),3)} · (${fmt(S.cda,2)} · ${fmt(c.k,3)} + 0,0044) · ${fmt(c.ax,2)}² = ${fmt(c.Fa,1)} N</code><br>${t('aeroP')} = ${fmt(c.Fa,1)} × ${fmt(c.v,2)} m/s = <b>${fmt(Math.round(c.Pa))} W</b>`;
   if(c.total<=0)s+='<br>'+t('sumBrake');
   $('sum').innerHTML=s;
 }
@@ -606,6 +691,7 @@ function applyLang(l){
   document.documentElement.lang=LANG;document.title=t('doc');
   document.querySelectorAll('[data-i]').forEach(el=>{el.textContent=t(el.dataset.i);});
   document.querySelectorAll('[data-ia]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.ia)));
+  document.querySelectorAll('.meth').forEach(m=>{m.hidden=m.lang!==LANG;});
   $('lgTR').setAttribute('aria-pressed',LANG==='tr');$('lgEN').setAttribute('aria-pressed',LANG==='en');
   chips();update();
 }
